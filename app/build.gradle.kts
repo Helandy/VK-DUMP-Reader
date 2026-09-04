@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
@@ -8,20 +6,20 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val redpandaProperties = Properties().apply {
-    rootProject.file("redpanda.properties").inputStream().use { load(it) }
-}
+val baseApplicationId = providers.gradleProperty("redpanda.applicationId").get()
+val appVersionName = providers.gradleProperty("redpanda.versionName").get()
+val appVersionCode = providers.gradleProperty("redpanda.versionCode").get().toInt()
 
 android {
     namespace = "com.etozhesandy.redpanda"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = redpandaProperties.getProperty("redpanda.applicationId")
+        applicationId = baseApplicationId
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = redpandaProperties.getProperty("redpanda.versionCode").toInt()
-        versionName = redpandaProperties.getProperty("redpanda.versionName")
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
