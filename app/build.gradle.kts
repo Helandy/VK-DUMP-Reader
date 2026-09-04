@@ -43,7 +43,7 @@ android {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            val fileName = "RedPanda-${output.versionName.orNull ?: appVersionName}-${variant.buildType}.apk"
+            val fileName = "VK-DUMP-Reader-${output.versionName.orNull ?: appVersionName}-${variant.buildType}.apk"
             (output as? com.android.build.api.variant.impl.VariantOutputImpl)?.outputFileName?.set(fileName)
         }
     }
