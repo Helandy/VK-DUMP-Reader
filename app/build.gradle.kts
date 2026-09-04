@@ -40,6 +40,15 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val fileName = "RedPanda-${output.versionName.orNull ?: appVersionName}-${variant.buildType}.apk"
+            (output as? com.android.build.api.variant.impl.VariantOutputImpl)?.outputFileName?.set(fileName)
+        }
+    }
+}
+
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:common"))
@@ -48,6 +57,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
     implementation(project(":core:settings"))
+    implementation(project(":core:security"))
 
     implementation(project(":features:home"))
     implementation(project(":features:importer"))
@@ -56,6 +66,7 @@ dependencies {
     implementation(project(":features:chat"))
     implementation(project(":features:favorites"))
     implementation(project(":features:settings"))
+    implementation(project(":features:lock"))
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lock_title">VK DUMP Reader is locked</string>
+    <string name="lock_enter_pin">Enter your PIN</string>
+    <string name="lock_touch_sensor">Touch the fingerprint sensor</string>
+    <string name="lock_use_pin">Use PIN</string>
+    <string name="lock_use_fingerprint">Use fingerprint</string>
+    <string name="lock_wrong_pin">Wrong PIN. %1$d attempts left</string>
+    <string name="lock_wrong_pin_last">Wrong PIN. Last attempt before a pause</string>
+    <string name="lock_biometric_failed">Fingerprint not recognised</string>
+    <!-- %1$s is an already-formatted mm:ss countdown. -->
+    <string name="lock_locked_out">Too many attempts. Try again in %1$s</string>
+
+    <string name="lock_prompt_title">Unlock VK DUMP Reader</string>
+    <string name="lock_prompt_subtitle">Confirm your fingerprint to continue</string>
+
+    <string name="pin_setup_title">Login PIN</string>
+    <string name="pin_setup_enter_current">Enter your current PIN</string>
+    <string name="pin_setup_enter_new">Come up with a 4-digit PIN</string>
+    <string name="pin_setup_confirm_new">Repeat the PIN</string>
+    <string name="pin_setup_mismatch">The PINs do not match. Try again</string>
+
+    <string name="pin_delete">Delete</string>
+</resources>

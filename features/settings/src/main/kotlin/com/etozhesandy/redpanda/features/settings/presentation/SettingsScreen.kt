@@ -29,6 +29,7 @@ import com.etozhesandy.redpanda.core.settings.AppSettings
 import com.etozhesandy.redpanda.features.settings.R
 import com.etozhesandy.redpanda.features.settings.presentation.SettingsState
 import com.etozhesandy.redpanda.features.settings.presentation.utils.formatBytes
+import com.etozhesandy.redpanda.features.settings.presentation.view.SecuritySection
 import com.etozhesandy.redpanda.features.settings.presentation.view.SortDefaultItem
 
 @Composable
@@ -101,6 +102,9 @@ fun SettingsScreen(
                     AppSettings.MEDIA_IMAGE_WIDTH_STEP_DP - 1,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             )
+
+            HorizontalDivider()
+            SecuritySection(state = state, onEvent = onEvent)
 
             HorizontalDivider()
             Text(

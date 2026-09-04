@@ -2,16 +2,22 @@ package com.etozhesandy.redpanda.features.settings.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.etozhesandy.redpanda.core.common.mvi.BaseViewModel
+import com.etozhesandy.redpanda.core.navigation.PinSetupMode
+import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
 import com.etozhesandy.redpanda.core.model.naturalAscending
 import com.etozhesandy.redpanda.core.model.nextAscending
+import com.etozhesandy.redpanda.features.settings.domain.usecase.GetBiometricAvailabilityUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.GetProfilesCacheSizeUseCase
+import com.etozhesandy.redpanda.features.settings.domain.usecase.ObserveAppLockConfigUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.ObserveSettingsUseCase
+import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateBiometricEnabledUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateCoilCacheSizeUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultChatReversedUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultDialogSortUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultMediaSortUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultSearchSortUseCase
+import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateLockTimeoutUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateMediaImageWidthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -29,6 +35,10 @@ class SettingsViewModel @Inject constructor(
     private val updateDefaultMediaSort: UpdateDefaultMediaSortUseCase,
     private val updateDefaultSearchSort: UpdateDefaultSearchSortUseCase,
     private val getProfilesCacheSize: GetProfilesCacheSizeUseCase,
+    observeAppLockConfig: ObserveAppLockConfigUseCase,
+    private val getBiometricAvailability: GetBiometricAvailabilityUseCase,
+    private val updateBiometricEnabled: UpdateBiometricEnabledUseCase,
+    private val updateLockTimeout: UpdateLockTimeoutUseCase,
 ) : BaseViewModel<SettingsState.State, SettingsState.Event, SettingsState.Effect>() {
 
     override fun createInitialState() = SettingsState.State()
@@ -51,6 +61,20 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+
+        observeAppLockConfig()
+            .onEach { config ->
+                setState {
+                    copy(
+                        appLockEnabled = config.enabled,
+                        biometricEnabled = config.biometricEnabled,
+                        lockTimeoutSeconds = config.timeoutSeconds,
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+
+        setState { copy(biometricAvailability = getBiometricAvailability()) }
 
         launchSafe {
             val bytes = getProfilesCacheSize()
@@ -96,6 +120,14 @@ class SettingsViewModel @Inject constructor(
                     ),
                 )
             }
+            is SettingsState.Event.AppLockToggled -> nav.navigate(
+                // Turning protection off still goes through the PIN screen: removing it must be
+                // proven, not just toggled by whoever has the unlocked phone.
+                Routes.PinSetup(if (event.value) PinSetupMode.CREATE else PinSetupMode.DISABLE),
+            )
+            SettingsState.Event.ChangePinClicked -> nav.navigate(Routes.PinSetup(PinSetupMode.CHANGE))
+            is SettingsState.Event.BiometricToggled -> launchSafe { updateBiometricEnabled(event.value) }
+            is SettingsState.Event.LockTimeoutChanged -> launchSafe { updateLockTimeout(event.seconds) }
             SettingsState.Event.BackClicked -> nav.back()
         }
     }

@@ -16,6 +16,20 @@
     <string name="settings_newest_first_on">Чат открывается с последнего сообщения</string>
     <string name="settings_newest_first_off">Чат открывается с самого первого сообщения</string>
 
+    <string name="settings_security">Безопасность</string>
+    <string name="settings_app_lock">Задать пароль для входа</string>
+    <string name="settings_app_lock_on">PIN-код запрашивается при каждом запуске</string>
+    <string name="settings_app_lock_off">Приложение открывается без запроса</string>
+    <string name="settings_change_pin">Изменить PIN-код</string>
+    <string name="settings_biometric">Вход по отпечатку</string>
+    <string name="settings_biometric_on">PIN-код остаётся запасным вариантом</string>
+    <string name="settings_biometric_off">Запрашивается только PIN-код</string>
+    <string name="settings_biometric_no_hardware">На устройстве нет сканера отпечатка</string>
+    <string name="settings_biometric_not_enrolled">Сначала добавьте отпечаток в настройках системы</string>
+    <string name="settings_lock_timeout">Блокировать после сворачивания</string>
+    <string name="settings_lock_timeout_immediately">Сразу</string>
+    <string name="value_seconds">%1$d с</string>
+
     <string name="sort_default_summary">%1$s, %2$s</string>
     <string name="sort_direction_ascending_lower">по возрастанию</string>
     <string name="sort_direction_descending_lower">по убыванию</string>

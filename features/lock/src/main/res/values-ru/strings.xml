@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lock_title">VK DUMP Reader заблокирован</string>
+    <string name="lock_enter_pin">Введите PIN-код</string>
+    <string name="lock_touch_sensor">Приложите палец к сканеру</string>
+    <string name="lock_use_pin">Ввести PIN-код</string>
+    <string name="lock_use_fingerprint">Войти по отпечатку</string>
+    <string name="lock_wrong_pin">Неверный PIN-код. Осталось попыток: %1$d</string>
+    <string name="lock_wrong_pin_last">Неверный PIN-код. Последняя попытка до паузы</string>
+    <string name="lock_biometric_failed">Отпечаток не распознан</string>
+    <string name="lock_locked_out">Слишком много попыток. Повторите через %1$s</string>
+
+    <string name="lock_prompt_title">Разблокировка VK DUMP Reader</string>
+    <string name="lock_prompt_subtitle">Подтвердите отпечаток, чтобы продолжить</string>
+
+    <string name="pin_setup_title">PIN-код для входа</string>
+    <string name="pin_setup_enter_current">Введите текущий PIN-код</string>
+    <string name="pin_setup_enter_new">Придумайте PIN-код из 4 цифр</string>
+    <string name="pin_setup_confirm_new">Повторите PIN-код</string>
+    <string name="pin_setup_mismatch">PIN-коды не совпадают. Попробуйте ещё раз</string>
+
+    <string name="pin_delete">Удалить</string>
+</resources>

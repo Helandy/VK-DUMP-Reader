@@ -15,6 +15,9 @@ object Routes {
     data object Settings
 
     @Serializable
+    data class PinSetup(val mode: PinSetupMode)
+
+    @Serializable
     data class Profile(val profileId: String)
 
     @Serializable

@@ -16,6 +16,20 @@
     <string name="settings_newest_first_on">The chat opens at the last message</string>
     <string name="settings_newest_first_off">The chat opens at the very first message</string>
 
+    <string name="settings_security">Security</string>
+    <string name="settings_app_lock">Set a login password</string>
+    <string name="settings_app_lock_on">A PIN is asked for on every launch</string>
+    <string name="settings_app_lock_off">The app opens without asking</string>
+    <string name="settings_change_pin">Change PIN</string>
+    <string name="settings_biometric">Unlock with fingerprint</string>
+    <string name="settings_biometric_on">The PIN stays available as a fallback</string>
+    <string name="settings_biometric_off">Only the PIN is asked for</string>
+    <string name="settings_biometric_no_hardware">This device has no fingerprint sensor</string>
+    <string name="settings_biometric_not_enrolled">Add a fingerprint in the system settings first</string>
+    <string name="settings_lock_timeout">Lock after being in the background</string>
+    <string name="settings_lock_timeout_immediately">Immediately</string>
+    <string name="value_seconds">%1$d s</string>
+
     <!-- The stored default spelled out: sort key first, then its direction. -->
     <string name="sort_default_summary">%1$s, %2$s</string>
     <string name="sort_direction_ascending_lower">ascending</string>
