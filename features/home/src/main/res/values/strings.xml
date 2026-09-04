@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_title">Profiles</string>
+    <string name="home_action_settings">Settings</string>
+    <string name="home_action_import">Import a profile</string>
+    <string name="home_empty">No profiles imported yet.\nTap + to add a VK archive.</string>
+
+    <!-- One profile row: what it was imported from and, while that is still going, how it is doing. -->
+    <string name="profile_source_with_status">%1$s · %2$s</string>
+    <string name="profile_status_importing">importing…</string>
+    <string name="profile_status_error">import failed</string>
+    <string name="profile_action_delete">Delete profile</string>
+
+    <!-- Confirmation before a profile and everything under it is dropped. -->
+    <string name="delete_profile_title">Delete this profile?</string>
+    <string name="delete_profile_message">“%1$s” and all of its dialogs, messages and attachments will be deleted permanently.</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+</resources>

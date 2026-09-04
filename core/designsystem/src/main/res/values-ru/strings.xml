@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="attachment_type_photo">Фото</string>
+    <string name="attachment_type_video">Видео</string>
+    <string name="attachment_type_file">Документ</string>
+    <string name="attachment_type_audio">Аудио</string>
+    <string name="attachment_type_sticker">Стикер</string>
+    <string name="attachment_type_graffiti">Граффити</string>
+    <string name="attachment_type_link">Ссылка</string>
+    <string name="attachment_type_wall">Пост на стене</string>
+    <string name="attachment_type_call">Звонок</string>
+    <string name="attachment_type_other">Вложение</string>
+
+    <string name="attachment_unavailable">Вложение недоступно</string>
+
+    <string name="action_back">Назад</string>
+    <string name="action_download">Сохранить на телефон</string>
+
+    <string name="download_saved_to">Сохранено в Download/%1$s</string>
+    <string name="download_failed">Не удалось сохранить</string>
+
+    <string name="action_sort">Сортировка</string>
+    <string name="action_sort_ascending">Сортировка, по возрастанию</string>
+    <string name="action_sort_descending">Сортировка, по убыванию</string>
+    <string name="sort_direction_ascending">По возрастанию</string>
+    <string name="sort_direction_descending">По убыванию</string>
+
+    <string name="sort_option_date">По дате</string>
+    <string name="sort_option_name">По имени</string>
+    <string name="sort_option_message_count">По числу сообщений</string>
+    <string name="sort_option_sender">По отправителю</string>
+    <string name="sort_option_title">По названию</string>
+</resources>

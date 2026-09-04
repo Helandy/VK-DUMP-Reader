@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Attachment kinds, shown on tiles that have no thumbnail of their own. -->
+    <string name="attachment_type_photo">Photo</string>
+    <string name="attachment_type_video">Video</string>
+    <string name="attachment_type_file">Document</string>
+    <string name="attachment_type_audio">Audio</string>
+    <string name="attachment_type_sticker">Sticker</string>
+    <string name="attachment_type_graffiti">Graffiti</string>
+    <string name="attachment_type_link">Link</string>
+    <string name="attachment_type_wall">Wall post</string>
+    <string name="attachment_type_call">Call</string>
+    <string name="attachment_type_other">Attachment</string>
+
+    <!-- Shown in a viewer when an attachment has nothing openable behind it. -->
+    <string name="attachment_unavailable">Attachment unavailable</string>
+
+    <!-- Toolbar controls shared by every screen. -->
+    <string name="action_back">Back</string>
+    <string name="action_download">Save to phone</string>
+
+    <!-- Outcome of saving media from a viewer; the argument is the folder under Download/. -->
+    <string name="download_saved_to">Saved to Download/%1$s</string>
+    <string name="download_failed">Couldn\'t save</string>
+
+    <!-- Sort menu: the control itself and the direction it currently sorts in. -->
+    <string name="action_sort">Sort</string>
+    <string name="action_sort_ascending">Sort, ascending</string>
+    <string name="action_sort_descending">Sort, descending</string>
+    <string name="sort_direction_ascending">Ascending</string>
+    <string name="sort_direction_descending">Descending</string>
+
+    <!-- Sort keys, shared by the sorting screens and by the settings screen picking their defaults. -->
+    <string name="sort_option_date">By date</string>
+    <string name="sort_option_name">By name</string>
+    <string name="sort_option_message_count">By message count</string>
+    <string name="sort_option_sender">By sender</string>
+    <string name="sort_option_title">By title</string>
+</resources>

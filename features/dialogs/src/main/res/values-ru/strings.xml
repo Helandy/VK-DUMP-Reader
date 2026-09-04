@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dialogs_title">Диалоги</string>
+    <string name="dialogs_action_favorites">Избранное</string>
+    <string name="dialogs_search_placeholder">Поиск по имени</string>
+    <string name="dialogs_category_all">Все</string>
+
+    <string name="dialogs_empty_importing">Импортируем диалоги…</string>
+    <string name="dialogs_empty">Ничего не найдено</string>
+
+    <string name="dialogs_dialog_added">Диалог с %1$s, добавлен</string>
+
+    <string name="dialogs_import_banner_progress">Импортируется: %1$d из %2$d диалогов</string>
+    <string name="dialogs_import_banner_indeterminate">Импортируется…</string>
+
+    <plurals name="dialogs_message_count">
+        <item quantity="one">%1$d сообщение</item>
+        <item quantity="few">%1$d сообщения</item>
+        <item quantity="many">%1$d сообщений</item>
+        <item quantity="other">%1$d сообщения</item>
+    </plurals>
+</resources>

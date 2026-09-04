@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_friends">Друзья</string>
+    <string name="profile_groups">Группы</string>
+    <string name="profile_saved_photos">Сохраненные фотографии</string>
+    <string name="profile_attachments">Вложения</string>
+    <string name="profile_archive_files">Файлы архива</string>
+
+    <string name="profile_dialogs">Диалоги</string>
+    <string name="profile_show_all">Все</string>
+
+    <string name="profile_birth_date">День рождения</string>
+    <string name="profile_sex">Пол</string>
+    <string name="profile_country">Страна</string>
+    <string name="profile_city">Город</string>
+    <string name="profile_sex_male">Мужской</string>
+    <string name="profile_sex_female">Женский</string>
+    <string name="profile_sex_unknown">Не указан</string>
+
+    <string name="profile_search_by_name">Поиск по имени</string>
+    <string name="profile_empty_friends">Нет друзей</string>
+    <string name="profile_empty_groups">Нет групп</string>
+    <string name="profile_empty_saved_photos">Нет сохраненных фотографий</string>
+    <string name="profile_empty_attachments">Нет вложений</string>
+    <string name="profile_empty_archive_files">Файлы архива не найдены</string>
+    <string name="profile_empty_folder">Нет файлов</string>
+
+    <string name="profile_link_blocked">Ссылку нельзя открыть: она ведёт за пределы vk.com</string>
+
+    <string name="download_folder_attachments">Вложения</string>
+    <string name="download_folder_saved_photos">Сохранённые фото</string>
+
+    <plurals name="profile_file_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+</resources>

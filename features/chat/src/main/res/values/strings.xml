@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The chat's five tabs, in pager order. -->
+    <string name="chat_tab_messages">Messages</string>
+    <string name="chat_tab_photos">Photos</string>
+    <string name="chat_tab_videos">Videos</string>
+    <string name="chat_tab_audio">Audio</string>
+    <string name="chat_tab_files">Files</string>
+
+    <string name="chat_empty_photos">No photos yet</string>
+    <string name="chat_empty_videos">No videos yet</string>
+    <string name="chat_empty_audio">No audio yet</string>
+    <string name="chat_empty_files">No files yet</string>
+
+    <string name="chat_action_search">Search</string>
+    <string name="chat_action_reverse_order">Reverse the order</string>
+    <string name="chat_action_favorite">Favorite</string>
+    <string name="chat_action_play">Play</string>
+    <string name="chat_action_pause">Pause</string>
+    <string name="chat_action_go_to_message">Go to the message</string>
+
+    <string name="chat_search_placeholder">Search messages</string>
+    <string name="chat_search_close">Close search</string>
+    <string name="chat_search_empty">Nothing found</string>
+</resources>

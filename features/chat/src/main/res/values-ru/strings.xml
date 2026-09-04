@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_tab_messages">Сообщения</string>
+    <string name="chat_tab_photos">Фото</string>
+    <string name="chat_tab_videos">Видео</string>
+    <string name="chat_tab_audio">Аудио</string>
+    <string name="chat_tab_files">Файлы</string>
+
+    <string name="chat_empty_photos">Фото пока нет</string>
+    <string name="chat_empty_videos">Видео пока нет</string>
+    <string name="chat_empty_audio">Аудио пока нет</string>
+    <string name="chat_empty_files">Файлов пока нет</string>
+
+    <string name="chat_action_search">Поиск</string>
+    <string name="chat_action_reverse_order">Развернуть порядок</string>
+    <string name="chat_action_favorite">Избранное</string>
+    <string name="chat_action_play">Играть</string>
+    <string name="chat_action_pause">Пауза</string>
+    <string name="chat_action_go_to_message">Перейти к сообщению</string>
+
+    <string name="chat_search_placeholder">Поиск сообщений</string>
+    <string name="chat_search_close">Закрыть поиск</string>
+    <string name="chat_search_empty">Ничего не найдено</string>
+</resources>

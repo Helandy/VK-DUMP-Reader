@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Section titles, reused as both the screen title and the preview row header. -->
+    <string name="profile_friends">Friends</string>
+    <string name="profile_groups">Groups</string>
+    <string name="profile_saved_photos">Saved photos</string>
+    <string name="profile_attachments">Attachments</string>
+    <string name="profile_archive_files">Archive files</string>
+
+    <string name="profile_dialogs">Dialogs</string>
+    <string name="profile_show_all">All</string>
+    <string name="profile_vk_id">ID %1$s</string>
+
+    <!-- Personal details, shown as label/value rows. -->
+    <string name="profile_birth_date">Birthday</string>
+    <string name="profile_sex">Gender</string>
+    <string name="profile_country">Country</string>
+    <string name="profile_city">City</string>
+    <string name="profile_sex_male">Male</string>
+    <string name="profile_sex_female">Female</string>
+    <string name="profile_sex_unknown">Not specified</string>
+
+    <string name="profile_search_by_name">Search by name</string>
+    <string name="profile_empty_friends">No friends</string>
+    <string name="profile_empty_groups">No groups</string>
+    <string name="profile_empty_saved_photos">No saved photos</string>
+    <string name="profile_empty_attachments">No attachments</string>
+    <string name="profile_empty_archive_files">No archive files found</string>
+    <string name="profile_empty_folder">No files</string>
+
+    <!-- A link that leaves vk.com is refused rather than opened in the in-app browser. -->
+    <string name="profile_link_blocked">This link can\'t be opened: it leads outside vk.com</string>
+
+    <!-- Download/ subfolders media from a profile is saved into. -->
+    <string name="download_folder_attachments">Attachments</string>
+    <string name="download_folder_saved_photos">Saved photos</string>
+
+    <plurals name="profile_file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+</resources>

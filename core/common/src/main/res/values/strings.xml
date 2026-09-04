@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fallback messages for errors that surface as a snackbar anywhere in the app. -->
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_file_read">Couldn\'t read the file</string>
+    <string name="error_unknown">Something went wrong</string>
+
+    <!-- Failures while saving media into the public Downloads folder. -->
+    <string name="download_create_file_failed">Couldn\'t create the file</string>
+    <string name="download_open_file_failed">Couldn\'t open the file for writing</string>
+    <string name="download_source_outside_archive">The file doesn\'t belong to an imported archive</string>
+</resources>

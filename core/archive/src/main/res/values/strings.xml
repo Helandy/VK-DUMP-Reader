@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Foreground notification shown while a profile is being imported. -->
+    <string name="import_notification_title">Importing profile</string>
+    <string name="import_notification_channel">Profile import</string>
+
+    <!-- Import stages, shown as the notification's body text. -->
+    <string name="import_stage_preparing">Preparing…</string>
+    <string name="import_stage_copying">Copying the archive…</string>
+    <string name="import_stage_extracting">Extracting…</string>
+    <string name="import_stage_parsing">Reading the conversations…</string>
+    <string name="import_stage_saving_dialogs">Dialogs: %1$d of %2$d · messages: %3$d</string>
+    <string name="import_stage_saving_messages">Messages saved: %1$d</string>
+    <string name="import_stage_done">Done</string>
+    <string name="import_stage_error">Import failed</string>
+
+    <!-- Placeholder profile names, used before and instead of a name read from the archive. -->
+    <string name="import_profile_name_placeholder">Importing…</string>
+    <string name="import_profile_name_unknown">Untitled</string>
+
+    <!-- Reasons an archive can\'t be unpacked. -->
+    <string name="archive_format_unknown">Couldn\'t detect the archive format: .zip and .rar are supported</string>
+    <string name="archive_too_large_or_broken">The archive is too large or damaged</string>
+</resources>

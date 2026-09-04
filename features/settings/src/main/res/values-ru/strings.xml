@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Настройки</string>
+
+    <string name="settings_profiles_cache">Общий кэш профилей</string>
+    <string name="settings_cache_calculating">Подсчёт…</string>
+    <string name="settings_image_cache_size">Размер кэша изображений</string>
+    <string name="settings_media_image_width">Ширина картинок в сетке медиа</string>
+
+    <string name="settings_default_sort">Сортировка по умолчанию</string>
+    <string name="settings_dialog_list">Список диалогов</string>
+    <string name="settings_chat_media">Медиа в чате</string>
+    <string name="settings_message_search">Поиск по сообщениям</string>
+
+    <string name="settings_newest_first">Новые сообщения сверху</string>
+    <string name="settings_newest_first_on">Чат открывается с последнего сообщения</string>
+    <string name="settings_newest_first_off">Чат открывается с самого первого сообщения</string>
+
+    <string name="sort_default_summary">%1$s, %2$s</string>
+    <string name="sort_direction_ascending_lower">по возрастанию</string>
+    <string name="sort_direction_descending_lower">по убыванию</string>
+
+    <string name="value_megabytes">%1$d МБ</string>
+    <string name="value_dp">%1$d dp</string>
+    <string name="size_bytes">%1$d Б</string>
+    <string name="size_kilobytes">%1$s КБ</string>
+    <string name="size_megabytes">%1$s МБ</string>
+    <string name="size_gigabytes">%1$s ГБ</string>
+    <string name="size_terabytes">%1$s ТБ</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dialogs_title">Dialogs</string>
+    <string name="dialogs_action_favorites">Favorites</string>
+    <string name="dialogs_search_placeholder">Search by name</string>
+    <string name="dialogs_category_all">All</string>
+
+    <!-- While the import is still running an empty list means "not there yet", not "no such dialog". -->
+    <string name="dialogs_empty_importing">Importing dialogs…</string>
+    <string name="dialogs_empty">Nothing found</string>
+
+    <!-- Toast raised as a running import adds each dialog. -->
+    <string name="dialogs_dialog_added">Dialog with %1$s added</string>
+
+    <!-- Live import status above the list. -->
+    <string name="dialogs_import_banner_progress">Importing: %1$d of %2$d dialogs</string>
+    <string name="dialogs_import_banner_indeterminate">Importing…</string>
+
+    <plurals name="dialogs_message_count">
+        <item quantity="one">%1$d message</item>
+        <item quantity="other">%1$d messages</item>
+    </plurals>
+</resources>

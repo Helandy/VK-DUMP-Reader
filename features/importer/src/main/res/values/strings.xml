@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_title">Import a profile</string>
+    <string name="import_headline">Where is the export?</string>
+    <string name="import_pick_archive">Pick an archive</string>
+    <string name="import_pick_archive_description">A .zip or .rar — the format is detected on its own.</string>
+    <string name="import_pick_folder">Pick a folder</string>
+    <string name="import_pick_folder_description">The export is already unpacked.</string>
+    <string name="import_background_note">The import continues in the background, so you can go straight to the dialogs.</string>
+
+    <!-- Shown before the system permission sheet, which says nothing about what the notification is for. -->
+    <string name="notification_rationale_title">Show import progress?</string>
+    <string name="notification_rationale_message">The import runs in the background and can take a few minutes. The notification shows its progress and tells you when everything is ready, even if you leave the app. The app sends nothing else.</string>
+    <string name="notification_rationale_allow">Allow</string>
+    <string name="notification_rationale_later">Not now</string>
+</resources>

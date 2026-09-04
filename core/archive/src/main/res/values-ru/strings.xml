@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_notification_title">Импорт профиля</string>
+    <string name="import_notification_channel">Импорт профиля</string>
+
+    <string name="import_stage_preparing">Подготовка…</string>
+    <string name="import_stage_copying">Копирование архива…</string>
+    <string name="import_stage_extracting">Распаковка…</string>
+    <string name="import_stage_parsing">Разбор переписки…</string>
+    <string name="import_stage_saving_dialogs">Диалогов: %1$d из %2$d · сообщений: %3$d</string>
+    <string name="import_stage_saving_messages">Сохранено сообщений: %1$d</string>
+    <string name="import_stage_done">Готово</string>
+    <string name="import_stage_error">Ошибка импорта</string>
+
+    <string name="import_profile_name_placeholder">Импорт…</string>
+    <string name="import_profile_name_unknown">Без названия</string>
+
+    <string name="archive_format_unknown">Не удалось определить формат архива: поддерживаются .zip и .rar</string>
+    <string name="archive_too_large_or_broken">Архив слишком большой или повреждён</string>
+</resources>

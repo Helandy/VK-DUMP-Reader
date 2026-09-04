@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+
+    <string name="settings_profiles_cache">Profiles cache</string>
+    <string name="settings_cache_calculating">Counting…</string>
+    <string name="settings_image_cache_size">Image cache size</string>
+    <string name="settings_media_image_width">Image width in the media grid</string>
+
+    <string name="settings_default_sort">Default sorting</string>
+    <string name="settings_dialog_list">Dialog list</string>
+    <string name="settings_chat_media">Media in chat</string>
+    <string name="settings_message_search">Message search</string>
+
+    <string name="settings_newest_first">Newest messages first</string>
+    <string name="settings_newest_first_on">The chat opens at the last message</string>
+    <string name="settings_newest_first_off">The chat opens at the very first message</string>
+
+    <!-- The stored default spelled out: sort key first, then its direction. -->
+    <string name="sort_default_summary">%1$s, %2$s</string>
+    <string name="sort_direction_ascending_lower">ascending</string>
+    <string name="sort_direction_descending_lower">descending</string>
+
+    <!-- Slider values and cache sizes. %1$s carries an already-formatted number. -->
+    <string name="value_megabytes">%1$d MB</string>
+    <string name="value_dp">%1$d dp</string>
+    <string name="size_bytes">%1$d B</string>
+    <string name="size_kilobytes">%1$s KB</string>
+    <string name="size_megabytes">%1$s MB</string>
+    <string name="size_gigabytes">%1$s GB</string>
+    <string name="size_terabytes">%1$s TB</string>
+</resources>
