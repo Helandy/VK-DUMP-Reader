@@ -13,6 +13,11 @@ object HomeState {
         val isLoading: Boolean = true,
         /** An import is already in flight; starting a second one breaks both. */
         val isImportRunning: Boolean = false,
+        /**
+         * Profiles whose erase is still running. Their rows leave the database early on, but the
+         * on-disk data does not, so opening one of them would show a profile that is coming apart.
+         */
+        val deletingProfileIds: Set<String> = emptySet(),
     ) : UiState
 
     sealed interface Event : UiEvent {

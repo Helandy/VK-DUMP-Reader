@@ -17,4 +17,9 @@
 
     <string name="archive_format_unknown">Не удалось определить формат архива: поддерживаются .zip и .rar</string>
     <string name="archive_too_large_or_broken">Архив слишком большой или повреждён</string>
+
+    <!-- Уведомление, пока профиль удаляется. -->
+    <string name="delete_notification_title">Удаление профиля</string>
+    <string name="delete_notification_channel">Удаление профиля</string>
+    <string name="delete_notification_text">Удаляем импортированные данные…</string>
 </resources>

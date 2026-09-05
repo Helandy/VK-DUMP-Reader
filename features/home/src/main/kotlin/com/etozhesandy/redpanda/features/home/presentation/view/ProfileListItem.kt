@@ -32,14 +32,17 @@ import com.etozhesandy.redpanda.features.home.R
 @Composable
 fun ProfileListItem(
     profile: Profile,
+    isDeleting: Boolean,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
+        // A profile being erased is losing its rows and files as we look at it: it can be neither
+        // opened nor deleted a second time until the work is done.
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = !isDeleting, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -52,13 +55,13 @@ fun ProfileListItem(
         ) {
             Text(text = profile.displayName, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = sourceWithStatus(profile.sourceType, profile.status),
+                text = sourceWithStatus(profile.sourceType, profile.status, isDeleting),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        IconButton(onClick = onDeleteClick) {
+        IconButton(onClick = onDeleteClick, enabled = !isDeleting) {
             Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.profile_action_delete))
         }
     }
@@ -88,8 +91,20 @@ private fun RowScope.ProfileAvatar(profile: Profile) {
 
 /** A ready profile reads as just its source; an unfinished one appends why it isn't usable yet. */
 @Composable
-private fun sourceWithStatus(sourceType: SourceType, status: ProfileStatus): String {
+private fun sourceWithStatus(
+    sourceType: SourceType,
+    status: ProfileStatus,
+    isDeleting: Boolean,
+): String {
     val source = sourceLabel(sourceType)
+    // The erase outranks whatever the stored status still says: the profile is on its way out.
+    if (isDeleting) {
+        return stringResource(
+            R.string.profile_source_with_status,
+            source,
+            stringResource(R.string.profile_status_deleting),
+        )
+    }
     val statusRes = when (status) {
         ProfileStatus.IMPORTING -> R.string.profile_status_importing
         ProfileStatus.ERROR -> R.string.profile_status_error

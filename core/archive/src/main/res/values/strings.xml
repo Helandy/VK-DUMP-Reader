@@ -14,6 +14,11 @@
     <string name="import_stage_done">Done</string>
     <string name="import_stage_error">Import failed</string>
 
+    <!-- Foreground notification shown while a profile is being deleted. -->
+    <string name="delete_notification_title">Deleting profile</string>
+    <string name="delete_notification_channel">Profile deletion</string>
+    <string name="delete_notification_text">Removing the imported data…</string>
+
     <!-- Placeholder profile names, used before and instead of a name read from the archive. -->
     <string name="import_profile_name_placeholder">Importing…</string>
     <string name="import_profile_name_unknown">Untitled</string>

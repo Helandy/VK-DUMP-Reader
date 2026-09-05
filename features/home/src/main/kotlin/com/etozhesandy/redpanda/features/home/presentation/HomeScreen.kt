@@ -81,6 +81,7 @@ fun HomeScreen(
                 items(state.profiles, key = { it.id }) { profile ->
                     ProfileListItem(
                         profile = profile,
+                        isDeleting = profile.id in state.deletingProfileIds,
                         onClick = { onEvent(HomeState.Event.ProfileClicked(profile.id)) },
                         onDeleteClick = { profileToDelete = profile },
                     )

@@ -5,6 +5,7 @@ import com.etozhesandy.redpanda.core.common.mvi.BaseViewModel
 import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
 import com.etozhesandy.redpanda.features.home.domain.usecase.DeleteProfileUseCase
+import com.etozhesandy.redpanda.features.home.domain.usecase.ObserveDeletingProfilesUseCase
 import com.etozhesandy.redpanda.features.home.domain.usecase.ObserveImportRunningUseCase
 import com.etozhesandy.redpanda.features.home.domain.usecase.ObserveProfilesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ class HomeViewModel @Inject constructor(
     private val nav: INavigationManager,
     private val observeProfiles: ObserveProfilesUseCase,
     private val observeImportRunning: ObserveImportRunningUseCase,
+    private val observeDeletingProfiles: ObserveDeletingProfilesUseCase,
     private val deleteProfile: DeleteProfileUseCase,
 ) : BaseViewModel<HomeState.State, HomeState.Event, HomeState.Effect>() {
 
@@ -30,6 +32,10 @@ class HomeViewModel @Inject constructor(
         observeImportRunning()
             .onEach { running -> setState { copy(isImportRunning = running) } }
             .launchIn(viewModelScope)
+
+        observeDeletingProfiles()
+            .onEach { ids -> setState { copy(deletingProfileIds = ids) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: HomeState.Event) {
@@ -38,8 +44,13 @@ class HomeViewModel @Inject constructor(
             // gone stale by the time it reaches the ViewModel.
             HomeState.Event.ImportClicked -> if (!currentState.isImportRunning) nav.navigate(Routes.Import)
             HomeState.Event.SettingsClicked -> nav.navigate(Routes.Settings)
-            is HomeState.Event.ProfileClicked -> nav.navigate(Routes.Profile(event.profileId))
-            is HomeState.Event.DeleteProfileClicked -> launchSafe { deleteProfile(event.profileId) }
+            // Same staleness guard as the import button: a profile that is being erased must not
+            // be opened, whatever the row the tap started on believed.
+            is HomeState.Event.ProfileClicked ->
+                if (event.profileId !in currentState.deletingProfileIds) {
+                    nav.navigate(Routes.Profile(event.profileId))
+                }
+            is HomeState.Event.DeleteProfileClicked -> deleteProfile(event.profileId)
         }
     }
 }

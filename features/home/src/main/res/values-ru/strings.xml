@@ -9,6 +9,7 @@
     <string name="profile_source_with_status">%1$s · %2$s</string>
     <string name="profile_status_importing">импортируется…</string>
     <string name="profile_status_error">ошибка импорта</string>
+    <string name="profile_status_deleting">удаляется…</string>
     <string name="profile_action_delete">Удалить профиль</string>
 
     <string name="delete_profile_title">Удалить профиль?</string>

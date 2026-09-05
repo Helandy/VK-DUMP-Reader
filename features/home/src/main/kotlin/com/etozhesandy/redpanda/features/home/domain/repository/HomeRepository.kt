@@ -6,5 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface HomeRepository {
     fun observeProfiles(): Flow<List<Profile>>
     fun observeImportRunning(): Flow<Boolean>
-    suspend fun deleteProfile(profileId: String)
+    fun observeDeletingProfileIds(): Flow<Set<String>>
+    fun deleteProfile(profileId: String)
 }
