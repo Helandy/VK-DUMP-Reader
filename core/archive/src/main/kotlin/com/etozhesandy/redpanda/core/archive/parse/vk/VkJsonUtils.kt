@@ -1,7 +1,9 @@
 package com.etozhesandy.redpanda.core.archive.parse.vk
 
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
@@ -24,6 +26,14 @@ internal fun JsonObject.long(vararg keys: String): Long? = keys.firstNotNullOfOr
     runCatching { this[key]?.jsonPrimitive?.longOrNull }.getOrNull()
 }
 
+internal fun JsonObject.int(vararg keys: String): Int? = keys.firstNotNullOfOrNull { key ->
+    runCatching { this[key]?.jsonPrimitive?.intOrNull }.getOrNull()
+}
+
+internal fun JsonObject.bool(vararg keys: String): Boolean? = keys.firstNotNullOfOrNull { key ->
+    runCatching { this[key]?.jsonPrimitive?.booleanOrNull }.getOrNull()
+}
+
 internal fun JsonObject.obj(vararg keys: String): JsonObject? = keys.firstNotNullOfOrNull { key ->
     runCatching { this[key]?.jsonObject }.getOrNull()
 }
@@ -31,6 +41,17 @@ internal fun JsonObject.obj(vararg keys: String): JsonObject? = keys.firstNotNul
 internal fun JsonObject.arr(vararg keys: String): JsonArray? = keys.firstNotNullOfOrNull { key ->
     runCatching { this[key]?.jsonArray }.getOrNull()
 }
+
+/**
+ * This element as an object, or null for every other shape — `JsonNull` included.
+ *
+ * The trap this exists to close: a VK dump writes an absent field as an explicit `null` rather
+ * than by leaving the key out, and `JsonNull` is a perfectly ordinary [JsonElement], so
+ * `element?.jsonObject` does **not** short-circuit on it — it throws `IllegalArgumentException`.
+ * One real export writes `"reply_message": null` on all 517 136 of its messages, which threw on
+ * the first message of the first dialog and failed the entire import with zero dialogs saved.
+ */
+internal fun JsonElement?.asObject(): JsonObject? = this as? JsonObject
 
 /**
  * URL of the largest entry in a VK `sizes`/`Images` array — the copy worth keeping, since the

@@ -27,13 +27,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
 
 /**
  * Parses a second, richer VK export layout seen in the wild: a self-contained viewer app with
@@ -63,7 +58,7 @@ class VkApiArchiveParser @Inject constructor(
             val messagesDir = File(contentRoot, "messages")
             val conversations = readJsonObject(File(messagesDir, "conversations.json"))
 
-            val ownerId = ownerInfo?.get("id")?.jsonPrimitive?.contentOrNull
+            val ownerId = ownerInfo?.str("id")
 
             ownerInfo?.let { sink.onProfileDetails(parseProfileDetails(it)) }
             parseFriends(contentRoot, profileId)?.let { sink.onFriends(it) }
@@ -78,7 +73,7 @@ class VkApiArchiveParser @Inject constructor(
                 peerDirs.map { peerDir ->
                     async(ioDispatcher) {
                         semaphore.withPermit {
-                            parsePeer(peerDir, conversations?.get(peerDir.name)?.jsonObject, ownerId, profileId, sink)
+                            parsePeer(peerDir, conversations?.obj(peerDir.name), ownerId, profileId, sink)
                         }
                     }
                 }.awaitAll()
@@ -97,17 +92,16 @@ class VkApiArchiveParser @Inject constructor(
         val peerId = peerDir.name
         val dialogId = "$profileId:$peerId"
 
-        val peerEntity = conversation?.get("user")?.jsonObject ?: conversation?.get("group")?.jsonObject
+        val peerEntity = conversation?.obj("user") ?: conversation?.obj("group")
         val peerName = peerEntity?.let(::personName) ?: peerId
-        val peerAvatarPath = peerEntity?.get("photo_100")?.jsonPrimitive?.contentOrNull
-            ?: peerEntity?.get("photo_50")?.jsonPrimitive?.contentOrNull
+        val peerAvatarPath = peerEntity?.str("photo_100", "photo_50")
 
         val dataJson = runCatching {
             json.parseToJsonElement(stripJsAssignment(File(peerDir, "data.json").readText())).jsonObject
         }.getOrNull()
         val nameById = buildNameLookup(dataJson)
 
-        val pageCount = dataJson?.get("jsons_count")?.jsonPrimitive?.intOrNull
+        val pageCount = dataJson?.int("jsons_count")
             ?: peerDir.listFiles { file -> file.name.removeSuffix(".json").toIntOrNull() != null }.orEmpty().size
 
         var lastMessageAt = 0L
@@ -124,12 +118,12 @@ class VkApiArchiveParser @Inject constructor(
             }.getOrNull() ?: continue
 
             for (element in pageMessages) {
-                val msg = element.jsonObject
-                val localId = msg["id"]?.jsonPrimitive?.contentOrNull ?: continue
-                val fromId = msg["from_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
-                val timestamp = (msg["date"]?.jsonPrimitive?.longOrNull ?: 0L) * 1000
+                val msg = element.asObject() ?: continue
+                val localId = msg.str("id") ?: continue
+                val fromId = msg.str("from_id").orEmpty()
+                val timestamp = (msg.long("date") ?: 0L) * 1000
                 val text = extractMessageText(msg, nameById, ownerId, peerId, peerName)
-                val isOutgoing = msg["out"]?.jsonPrimitive?.booleanOrNull ?: (fromId == ownerId)
+                val isOutgoing = msg.bool("out") ?: (fromId == ownerId)
                 val senderName = resolveSenderName(fromId, ownerId, peerId, peerName, nameById)
                 distinctSenders += fromId
 
@@ -225,14 +219,14 @@ class VkApiArchiveParser @Inject constructor(
         peerId: String,
         peerName: String,
     ): String {
-        val own = msg["text"]?.jsonPrimitive?.contentOrNull.orEmpty()
-        val replyText = msg["reply_message"]?.jsonObject?.let { reply ->
+        val own = msg.str("text").orEmpty()
+        val replyText = msg.obj("reply_message")?.let { reply ->
             val text = extractMessageText(reply, nameById, ownerId, peerId, peerName)
             text.ifBlank { null }?.let { "> $it" }
         }
-        val fwdTexts = msg["fwd_messages"]?.jsonArray?.mapNotNull { fwd ->
-            val fwdObj = fwd.jsonObject
-            val fromId = fwdObj["from_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
+        val fwdTexts = msg.arr("fwd_messages")?.mapNotNull { fwd ->
+            val fwdObj = fwd.asObject() ?: return@mapNotNull null
+            val fromId = fwdObj.str("from_id").orEmpty()
             val sender = resolveSenderName(fromId, ownerId, peerId, peerName, nameById)
             val text = extractMessageText(fwdObj, nameById, ownerId, peerId, peerName)
             text.ifBlank { null }?.let { "[Пересланное от $sender]: $it" }
@@ -242,10 +236,10 @@ class VkApiArchiveParser @Inject constructor(
 
     /** Builds an id→name lookup from `data.json`'s `users`/`profiles`/`groups` maps, covering everyone referenced anywhere in this peer's pages (including inside forwards/replies). */
     private fun buildNameLookup(dataJson: JsonObject?): Map<String, String> = buildMap {
-        dataJson?.get("users")?.jsonObject?.forEach { (id, entity) -> entity.jsonObject.let(::personName)?.let { put(id, it) } }
-        dataJson?.get("profiles")?.jsonObject?.forEach { (id, entity) -> entity.jsonObject.let(::personName)?.let { put(id, it) } }
-        dataJson?.get("groups")?.jsonObject?.forEach { (id, entity) ->
-            entity.jsonObject["name"]?.jsonPrimitive?.contentOrNull?.let { put(id, it) }
+        dataJson?.obj("users")?.forEach { (id, entity) -> entity.asObject()?.let(::personName)?.let { put(id, it) } }
+        dataJson?.obj("profiles")?.forEach { (id, entity) -> entity.asObject()?.let(::personName)?.let { put(id, it) } }
+        dataJson?.obj("groups")?.forEach { (id, entity) ->
+            entity.asObject()?.str("name")?.let { put(id, it) }
         }
     }
 
@@ -361,18 +355,18 @@ class VkApiArchiveParser @Inject constructor(
     }
 
     private fun parseProfileDetails(ownerInfo: JsonObject): ProfileDetails = ProfileDetails(
-        vkId = ownerInfo["id"]?.jsonPrimitive?.contentOrNull,
-        screenName = ownerInfo["screen_name"]?.jsonPrimitive?.contentOrNull,
-        avatarPath = ownerInfo["photo_max_orig"]?.jsonPrimitive?.contentOrNull
-            ?: ownerInfo["photo_200"]?.jsonPrimitive?.contentOrNull,
-        birthDate = ownerInfo["bdate"]?.jsonPrimitive?.contentOrNull,
-        sex = when (ownerInfo["sex"]?.jsonPrimitive?.intOrNull) {
+        vkId = ownerInfo.str("id"),
+        screenName = ownerInfo.str("screen_name"),
+        avatarPath = ownerInfo.str("photo_max_orig", "photo_200"),
+        birthDate = ownerInfo.str("bdate"),
+        sex = when (ownerInfo.int("sex")) {
             1 -> Sex.FEMALE
             2 -> Sex.MALE
             else -> Sex.UNKNOWN
         },
-        country = ownerInfo["country"]?.jsonPrimitive?.contentOrNull,
-        city = ownerInfo["city"]?.jsonPrimitive?.contentOrNull,
+        // Written as a bare string by some exporters and as `{"id":1,"title":"Россия"}` by others.
+        country = ownerInfo.placeName("country"),
+        city = ownerInfo.placeName("city"),
     )
 
     /**
@@ -383,13 +377,13 @@ class VkApiArchiveParser @Inject constructor(
     private suspend fun parseFriends(contentRoot: File, profileId: String): List<Friend>? {
         val friends = readJsonArray(File(contentRoot, "friends/friends.json")) ?: return null
         return friends.mapNotNull { element ->
-            val entity = element.jsonObject
-            val id = entity["id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val entity = element.asObject() ?: return@mapNotNull null
+            val id = entity.str("id") ?: return@mapNotNull null
             Friend(
                 id = id,
                 profileId = profileId,
                 name = personName(entity) ?: id,
-                avatarPath = entity["photo100"]?.jsonPrimitive?.contentOrNull,
+                avatarPath = entity.str("photo100"),
             )
         }
     }
@@ -398,15 +392,14 @@ class VkApiArchiveParser @Inject constructor(
     private suspend fun parseGroups(contentRoot: File, profileId: String): List<Group>? {
         val groups = readJsonArray(File(contentRoot, "groups/groups.json")) ?: return null
         return groups.mapNotNull { element ->
-            val entity = element.jsonObject
-            val id = (entity["id"] ?: entity["Id"])?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+            val entity = element.asObject() ?: return@mapNotNull null
+            val id = entity.str("id", "Id") ?: return@mapNotNull null
             Group(
                 id = id,
                 profileId = profileId,
-                name = entity["name"]?.jsonPrimitive?.contentOrNull ?: id,
-                avatarPath = entity["photo_100"]?.jsonPrimitive?.contentOrNull
-                    ?: entity["photo_50"]?.jsonPrimitive?.contentOrNull,
-                screenName = entity["screen_name"]?.jsonPrimitive?.contentOrNull,
+                name = entity.str("name") ?: id,
+                avatarPath = entity.str("photo_100", "photo_50"),
+                screenName = entity.str("screen_name"),
             )
         }
     }
@@ -415,13 +408,13 @@ class VkApiArchiveParser @Inject constructor(
     private suspend fun parseSavedPhotos(contentRoot: File, profileId: String): List<SavedPhoto>? {
         val photos = readJsonArray(File(contentRoot, "saved/saved.json")) ?: return null
         return photos.mapIndexedNotNull { index, element ->
-            val entity = element.jsonObject
+            val entity = element.asObject() ?: return@mapIndexedNotNull null
             val url = largestImageUrl(entity.arr("sizes")) ?: return@mapIndexedNotNull null
             SavedPhoto(
                 id = index.toString(),
                 profileId = profileId,
                 url = url,
-                timestampEpoch = (entity["date"]?.jsonPrimitive?.longOrNull ?: 0L) * 1000,
+                timestampEpoch = (entity.long("date") ?: 0L) * 1000,
             )
         }
     }
@@ -448,11 +441,14 @@ class VkApiArchiveParser @Inject constructor(
 
     private fun personName(entity: JsonObject): String? {
         val name = listOfNotNull(
-            entity["first_name"]?.jsonPrimitive?.contentOrNull,
-            entity["last_name"]?.jsonPrimitive?.contentOrNull,
+            entity.str("first_name"),
+            entity.str("last_name"),
         ).joinToString(" ").trim()
-        return name.ifBlank { entity["name"]?.jsonPrimitive?.contentOrNull }
+        return name.ifBlank { entity.str("name") }
     }
+
+    /** A place VK writes either as a plain string or as an `{id, title}` object. */
+    private fun JsonObject.placeName(key: String): String? = str(key) ?: obj(key)?.str("title", "name")
 
     /** These exports save each JSON payload as a JS assignment, e.g. `messages=[...]`. */
     private fun stripJsAssignment(raw: String): String {
