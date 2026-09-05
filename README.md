@@ -16,9 +16,6 @@
   <a href="https://github.com/Helandy/VK-DUMP-Reader/releases/latest">
     <img alt="Latest release" src="https://img.shields.io/github/v/release/Helandy/VK-DUMP-Reader?style=for-the-badge" />
   </a>
-  <a href="https://github.com/Helandy/VK-DUMP-Reader/releases">
-    <img alt="Total downloads" src="https://img.shields.io/github/downloads/Helandy/VK-DUMP-Reader/total?style=for-the-badge" />
-  </a>
   <a href="https://github.com/Helandy/VK-DUMP-Reader/stargazers">
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/Helandy/VK-DUMP-Reader?style=for-the-badge" />
   </a>
