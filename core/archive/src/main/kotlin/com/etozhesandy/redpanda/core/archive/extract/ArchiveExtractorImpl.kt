@@ -17,6 +17,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile as Zip4jFile
+import net.lingala.zip4j.model.FileHeader
 
 class ArchiveExtractorImpl @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -153,34 +154,74 @@ class ArchiveExtractorImpl @Inject constructor(
         }
     }
 
+    /**
+     * Unpacks [archive], repairing entry names that were written in a legacy codepage.
+     *
+     * zip4j is deliberately left on its default charset. Setting [Zip4jFile.setCharset] applies
+     * that charset to *every* entry and takes precedence over each entry's own UTF-8 flag
+     * (`HeaderUtil.decodeStringWithCharset` checks the charset first and never looks at the flag),
+     * which destroys the archives this is meant to fix: real exports are mixed, because the
+     * Windows zip tools that write them use the OEM codepage by default and only set the UTF-8
+     * flag on the names that codepage cannot represent. Forcing CP866 on one such export turned
+     * all 270 of its dialogs into `╨Ф╨╕╨░╨╗╨╛╨│╨╕/...`, so `Диалоги/` was not found at all and the
+     * import silently fell back to media-only. On the default charset zip4j honours the flag per
+     * entry, so only the unflagged names need correcting — which is done here, per entry.
+     */
     private fun extractZip(archive: File, destination: File) {
-        // The charset has to be set before anything reads the archive's headers: zip4j caches
-        // the central directory on first read and then compares it against the local headers
-        // it decodes during extraction, so switching charsets midway fails the whole extract
-        // with "File header and local file header mismatch". Hence the throwaway instance for
-        // detection and a fresh one for the extraction itself.
-        val charset = zipNameCharset(Zip4jFile(archive))
         val zipFile = Zip4jFile(archive)
-        if (charset != null) zipFile.charset = charset
-        zipFile.extractAll(destination.absolutePath)
+        val legacy = legacyNameCharset(zipFile)
+        if (legacy == null) {
+            zipFile.extractAll(destination.absolutePath)
+            return
+        }
+        val root = destination.canonicalFile
+        for (header in zipFile.fileHeaders) {
+            val name = decodeEntryName(header, legacy)
+            val outFile = File(destination, name.replace('\\', '/'))
+            if (!outFile.isInside(root)) continue
+            if (header.isDirectory) {
+                outFile.mkdirs()
+            } else {
+                // Only ever called for a file entry: handed a *directory* header, zip4j extracts
+                // that whole subtree and rebuilds each name with `String.replaceFirst`, whose
+                // first argument is a regex — so a folder like `инцест+тройнички` or
+                // `Имя (id123)` fails to match its own name and the entire subtree is written
+                // under the uncorrected CP437 name instead.
+                zipFile.extractFile(header, destination.absolutePath, name)
+            }
+        }
     }
 
     /**
-     * Picks the charset zip4j should decode entry names with, or null to leave its default alone.
+     * Decodes [header]'s name, honouring its own UTF-8 flag before falling back to [legacy].
      *
-     * Entries that set the zip's UTF-8 flag already decode correctly and need nothing. For the
-     * ones that don't, zip4j falls back to CP437 and mangles every non-ASCII name — "Диалоги"
-     * becomes "ä¿á½«ú¿", which then fails the `Name (idNNN)` folder pattern the VK parser matches
-     * on, so every dialog with a Cyrillic contact name is silently dropped. Two kinds of archive
-     * land here, and they need opposite treatment:
+     * An unflagged name reaches us as zip4j's CP437 decode. CP437 maps all 256 byte values to
+     * distinct characters, so re-encoding recovers the original bytes exactly and they can be
+     * decoded again with the codepage that was really used.
+     */
+    private fun decodeEntryName(header: FileHeader, legacy: Charset): String =
+        if (header.isFileNameUTF8Encoded) {
+            header.fileName
+        } else {
+            CP437?.let { String(header.fileName.toByteArray(it), legacy) } ?: header.fileName
+        }
+
+    /**
+     * The charset the archive's *unflagged* entry names were really written in, or null when there
+     * is nothing to repair and zip4j's own decoding can be trusted for the whole archive.
+     *
+     * Entries that set the UTF-8 flag are skipped: zip4j already decodes those correctly and they
+     * say nothing about how the rest were encoded. For the others zip4j falls back to CP437 and
+     * mangles every non-ASCII name — "Диалоги" becomes "ä¿á½«ú¿", which then fails the
+     * `Name (idNNN)` folder pattern the parsers match on, so those dialogs are dropped. Two kinds
+     * of archive land here, and they need opposite treatment:
      *  - `zip` on macOS/Linux writes UTF-8 bytes but never sets the flag,
-     *  - older VK export tools write a legacy DOS codepage (CP866, verified against a real export).
+     *  - older VK export tools write a legacy DOS codepage (CP866, verified against real exports).
      *
-     * CP437 maps all 256 byte values to distinct characters, so the name zip4j hands back can be
-     * turned into the raw bytes again losslessly and tested: valid UTF-8 means the first kind,
+     * The CP437 round-trip above makes them distinguishable: valid UTF-8 means the first kind,
      * anything else means the second.
      */
-    private fun zipNameCharset(zipFile: Zip4jFile): Charset? {
+    private fun legacyNameCharset(zipFile: Zip4jFile): Charset? {
         val cp437 = CP437 ?: return null
         var sawUnflaggedNonAscii = false
         var allValidUtf8 = true
