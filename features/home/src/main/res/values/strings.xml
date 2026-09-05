@@ -4,6 +4,10 @@
     <string name="home_action_settings">Settings</string>
     <string name="home_action_import">Import a profile</string>
     <string name="home_import_in_progress">An import is already running</string>
+    <!-- Banner above the profile list: a newer release is published on GitHub. -->
+    <string name="home_update_available">Version %1$s is available</string>
+    <string name="home_update_open_release">Open the release page</string>
+
     <string name="home_empty">No profiles imported yet.\nTap + to add a VK archive.</string>
 
     <!-- One profile row: what it was imported from and, while that is still going, how it is doing. -->

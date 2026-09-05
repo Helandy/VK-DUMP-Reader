@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.etozhesandy.redpanda.core.common.mvi.BaseViewModel
 import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
+import com.etozhesandy.redpanda.core.update.domain.usecase.GetAvailableUpdateUseCase
 import com.etozhesandy.redpanda.features.home.domain.usecase.DeleteProfileUseCase
 import com.etozhesandy.redpanda.features.home.domain.usecase.ObserveDeletingProfilesUseCase
 import com.etozhesandy.redpanda.features.home.domain.usecase.ObserveImportRunningUseCase
@@ -20,6 +21,7 @@ class HomeViewModel @Inject constructor(
     private val observeImportRunning: ObserveImportRunningUseCase,
     private val observeDeletingProfiles: ObserveDeletingProfilesUseCase,
     private val deleteProfile: DeleteProfileUseCase,
+    private val getAvailableUpdate: GetAvailableUpdateUseCase,
 ) : BaseViewModel<HomeState.State, HomeState.Event, HomeState.Effect>() {
 
     override fun createInitialState() = HomeState.State()
@@ -36,6 +38,13 @@ class HomeViewModel @Inject constructor(
         observeDeletingProfiles()
             .onEach { ids -> setState { copy(deletingProfileIds = ids) } }
             .launchIn(viewModelScope)
+
+        // Its own coroutine, and never part of `isLoading`: the profile list is local data and
+        // must appear whatever a request to GitHub is doing.
+        launchSafe {
+            val release = getAvailableUpdate()
+            setState { copy(availableUpdate = release) }
+        }
     }
 
     override fun onEvent(event: HomeState.Event) {
@@ -51,6 +60,10 @@ class HomeViewModel @Inject constructor(
                     nav.navigate(Routes.Profile(event.profileId))
                 }
             is HomeState.Event.DeleteProfileClicked -> deleteProfile(event.profileId)
+            HomeState.Event.UpdateBannerClicked ->
+                currentState.availableUpdate?.let { release ->
+                    setEffect { HomeState.Effect.OpenUrl(release.releaseUrl) }
+                }
         }
     }
 }

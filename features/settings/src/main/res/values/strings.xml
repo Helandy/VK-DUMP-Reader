@@ -43,4 +43,8 @@
     <string name="size_megabytes">%1$s MB</string>
     <string name="size_gigabytes">%1$s GB</string>
     <string name="size_terabytes">%1$s TB</string>
+    <string name="settings_about">About the app</string>
+    <string name="settings_app_version">App version</string>
+    <string name="settings_feedback">Questions / Ideas / Suggestions</string>
+
 </resources>

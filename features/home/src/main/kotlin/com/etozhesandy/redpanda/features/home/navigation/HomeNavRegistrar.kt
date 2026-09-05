@@ -19,6 +19,7 @@ class HomeNavRegistrar @Inject constructor() : NavRegistrar {
             val state by viewModel.state.collectAsStateWithLifecycle()
             HomeScreen(
                 state = state,
+                effect = viewModel.effect,
                 onEvent = viewModel::onEvent,
             )
         }

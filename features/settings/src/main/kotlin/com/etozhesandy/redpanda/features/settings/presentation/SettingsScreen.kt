@@ -29,6 +29,7 @@ import com.etozhesandy.redpanda.core.settings.AppSettings
 import com.etozhesandy.redpanda.features.settings.R
 import com.etozhesandy.redpanda.features.settings.presentation.SettingsState
 import com.etozhesandy.redpanda.features.settings.presentation.utils.formatBytes
+import com.etozhesandy.redpanda.features.settings.presentation.view.AboutSection
 import com.etozhesandy.redpanda.features.settings.presentation.view.SecuritySection
 import com.etozhesandy.redpanda.features.settings.presentation.view.SortDefaultItem
 
@@ -156,6 +157,9 @@ fun SettingsScreen(
                 ascending = state.defaultSearchSortAscending,
                 onSelect = { onEvent(SettingsState.Event.DefaultSearchSortSelected(it)) },
             )
+
+            HorizontalDivider()
+            AboutSection()
         }
     }
 }

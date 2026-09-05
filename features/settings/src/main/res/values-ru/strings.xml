@@ -41,4 +41,8 @@
     <string name="size_megabytes">%1$s МБ</string>
     <string name="size_gigabytes">%1$s ГБ</string>
     <string name="size_terabytes">%1$s ТБ</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_app_version">Версия приложения</string>
+    <string name="settings_feedback">Вопросы/Идеи/Предложения</string>
+
 </resources>
