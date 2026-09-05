@@ -34,6 +34,14 @@ fun VideoPlayer(uri: String, modifier: Modifier = Modifier, autoPlay: Boolean = 
 
     AndroidView(
         modifier = modifier.fillMaxSize(),
-        factory = { ctx -> PlayerView(ctx).apply { this.player = player } },
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                this.player = player
+                // Without this the controls pop up the moment playback starts (and on every
+                // pause/buffer); the overlay should only appear when the viewer taps the video.
+                controllerAutoShow = false
+                hideController()
+            }
+        },
     )
 }

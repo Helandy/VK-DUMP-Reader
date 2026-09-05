@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import com.etozhesandy.redpanda.core.navigation.NavRegistrar
 import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.features.chat.presentation.chat.ChatScreen
+import com.etozhesandy.redpanda.features.chat.presentation.globalsearch.GlobalSearchScreen
+import com.etozhesandy.redpanda.features.chat.presentation.globalsearch.GlobalSearchViewModel
 import com.etozhesandy.redpanda.features.chat.presentation.search.ChatSearchScreen
 import com.etozhesandy.redpanda.features.chat.presentation.search.ChatSearchViewModel
 import com.etozhesandy.redpanda.features.chat.presentation.photo.PhotoViewerScreen
@@ -25,6 +27,12 @@ class ChatNavRegistrar @Inject constructor() : NavRegistrar {
             val viewModel: ChatSearchViewModel = hiltViewModel()
             val state by viewModel.state.collectAsStateWithLifecycle()
             ChatSearchScreen(state = state, onEvent = viewModel::onEvent)
+        }
+
+        builder.composable<Routes.GlobalSearch> {
+            val viewModel: GlobalSearchViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            GlobalSearchScreen(state = state, onEvent = viewModel::onEvent)
         }
 
         builder.composable<Routes.PhotoViewer> {

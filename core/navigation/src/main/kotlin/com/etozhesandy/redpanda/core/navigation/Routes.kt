@@ -85,6 +85,16 @@ object Routes {
         val orderOverride: String? = null,
     )
 
+    /**
+     * Searching the messages of every dialog at once.
+     *
+     * Its own destination rather than a mode of [Dialogs]: a result opens an arbitrary chat, and
+     * the search has to stay on the stack so going back returns to the results the user was
+     * reading — unlike [ChatSearch], which replaces the one chat it was opened from.
+     */
+    @Serializable
+    data class GlobalSearch(val profileId: String)
+
     @Serializable
     data class Favorites(val profileId: String)
 

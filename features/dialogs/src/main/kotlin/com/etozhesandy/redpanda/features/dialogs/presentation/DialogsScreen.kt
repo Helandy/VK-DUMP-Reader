@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +70,9 @@ fun DialogsScreen(
         modifier = modifier,
         onBack = { onEvent(DialogsState.Event.BackClicked) },
         actions = {
+            IconButton(onClick = { onEvent(DialogsState.Event.SearchClicked) }) {
+                Icon(Icons.Default.Search, contentDescription = stringResource(R.string.dialogs_action_search))
+            }
             SortMenu(
                 options = DIALOG_SORT_OPTIONS,
                 selected = state.sort,

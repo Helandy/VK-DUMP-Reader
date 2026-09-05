@@ -3,6 +3,7 @@ package com.etozhesandy.redpanda.features.chat.mapper
 import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.features.chat.model.ChatArgs
 import com.etozhesandy.redpanda.features.chat.model.ChatSearchArgs
+import com.etozhesandy.redpanda.features.chat.model.GlobalSearchArgs
 import com.etozhesandy.redpanda.features.chat.model.PhotoViewerArgs
 
 fun Routes.Chat.toArgs(): ChatArgs = ChatArgs(
@@ -22,6 +23,8 @@ fun Routes.ChatSearch.toArgs(): ChatSearchArgs = ChatSearchArgs(
     profileId = profileId,
     orderOverride = orderOverride,
 )
+
+fun Routes.GlobalSearch.toArgs(): GlobalSearchArgs = GlobalSearchArgs(profileId = profileId)
 
 fun Routes.PhotoViewer.toArgs(): PhotoViewerArgs = PhotoViewerArgs(
     dialogId = dialogId,

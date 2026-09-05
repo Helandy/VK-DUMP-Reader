@@ -20,4 +20,6 @@
         <item quantity="one">%1$d message</item>
         <item quantity="other">%1$d messages</item>
     </plurals>
+
+    <string name="dialogs_action_search">Search messages</string>
 </resources>

@@ -22,4 +22,8 @@
     <string name="chat_search_placeholder">Search messages</string>
     <string name="chat_search_close">Close search</string>
     <string name="chat_search_empty">Nothing found</string>
+
+    <string name="global_search_placeholder">Search all dialogs</string>
+    <string name="global_search_close">Close search</string>
+    <string name="global_search_empty">Nothing found</string>
 </resources>

@@ -3,6 +3,7 @@ package com.etozhesandy.redpanda.features.chat.domain.usecase
 import androidx.paging.PagingData
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.ChatDialog
+import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.core.model.Profile
 import com.etozhesandy.redpanda.features.chat.domain.repository.ChatRepository
@@ -104,6 +105,11 @@ class SearchMessagesUseCaseTest {
             return flowOf(emptyList())
         }
 
+        override fun searchAllDialogs(profileId: String, ftsQuery: String): Flow<List<DialogMessage>> {
+            lastQuery = ftsQuery
+            return flowOf(emptyList())
+        }
+
         override fun observeDialog(dialogId: String): Flow<ChatDialog?> = unused()
         override fun observeProfile(profileId: String): Flow<Profile?> = unused()
         override fun pagingMessages(
@@ -121,7 +127,7 @@ class SearchMessagesUseCaseTest {
         override suspend fun getMessagePosition(dialogId: String, messageId: String, isReversed: Boolean): Int =
             unused()
 
-        private fun unused(): Nothing = error("Not used by SearchMessagesUseCase")
+        private fun unused(): Nothing = error("Not used by the search use cases")
     }
 
     private companion object {

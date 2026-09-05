@@ -1,5 +1,6 @@
 package com.etozhesandy.redpanda.core.storage.db.message
 
+import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.Message
 
 fun MessageEntity.toDomain(): Message = Message(
@@ -26,4 +27,9 @@ fun Message.toEntity(): MessageEntity = MessageEntity(
     isOutgoing = isOutgoing,
     isFavorite = isFavorite,
     hasAttachments = hasAttachments,
+)
+
+fun MessageWithDialogEntity.toDomain(): DialogMessage = DialogMessage(
+    message = message.toDomain(),
+    dialogName = peerName,
 )

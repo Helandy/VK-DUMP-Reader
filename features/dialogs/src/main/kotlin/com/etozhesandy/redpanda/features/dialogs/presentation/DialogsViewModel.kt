@@ -131,6 +131,7 @@ class DialogsViewModel @Inject constructor(
             }
             is DialogsState.Event.DialogClicked ->
                 nav.navigate(Routes.Chat(event.dialog.id, event.dialog.profileId))
+            DialogsState.Event.SearchClicked -> nav.navigate(Routes.GlobalSearch(profileId))
             DialogsState.Event.FavoritesClicked -> nav.navigate(Routes.Favorites(profileId))
             DialogsState.Event.BackClicked -> nav.back()
             is DialogsState.Event.SortSelected -> {

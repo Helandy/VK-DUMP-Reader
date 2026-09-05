@@ -29,6 +29,7 @@ object DialogsState {
         data class QueryChanged(val value: String) : Event
         data class CategorySelected(val category: String?) : Event
         data class DialogClicked(val dialog: ChatDialog) : Event
+        data object SearchClicked : Event
         data object FavoritesClicked : Event
         data object BackClicked : Event
 

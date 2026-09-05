@@ -1,6 +1,7 @@
 package com.etozhesandy.redpanda.features.chat.domain.model
 
 import com.etozhesandy.redpanda.core.model.Attachment
+import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.MediaSort
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.core.model.MessageSort
@@ -14,7 +15,22 @@ import kotlinx.coroutines.flow.flowOn
  * Note this reorders the results the search already produced, which the DAO caps at its own limit
  * of the most recent matches — so ascending shows the oldest of *those*, not the oldest overall.
  */
-fun List<Message>.sortedBy(sort: MessageSort, ascending: Boolean): List<Message> {
+fun List<Message>.sortedBy(sort: MessageSort, ascending: Boolean): List<Message> =
+    sortedWith(messageComparator(sort, ascending))
+
+/**
+ * The same ordering for results that come from every dialog at once, which carry their dialog.
+ *
+ * Named apart on the JVM only: erasure makes both overloads one signature, while at the Kotlin
+ * call site the two lists sort through the same name.
+ */
+@JvmName("sortedDialogMessagesBy")
+fun List<DialogMessage>.sortedBy(sort: MessageSort, ascending: Boolean): List<DialogMessage> {
+    val comparator = messageComparator(sort, ascending)
+    return sortedWith(Comparator { first, second -> comparator.compare(first.message, second.message) })
+}
+
+private fun messageComparator(sort: MessageSort, ascending: Boolean): Comparator<Message> {
     val comparator: Comparator<Message> = when (sort) {
         MessageSort.DATE -> compareBy { it.timestampEpoch }
         // Same sender repeats a lot, so date decides within a name to keep runs readable.
@@ -25,7 +41,7 @@ fun List<Message>.sortedBy(sort: MessageSort, ascending: Boolean): List<Message>
     } else {
         comparator
     }
-    return sortedWith(if (ascending) withTiebreak else withTiebreak.reversed())
+    return if (ascending) withTiebreak else withTiebreak.reversed()
 }
 /**
  * Applies a media ordering that can change while the list is on screen: the sort comes from the

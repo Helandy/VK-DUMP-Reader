@@ -8,6 +8,7 @@ import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.AttachmentType
 import com.etozhesandy.redpanda.core.model.ChatDialog
+import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.core.model.Profile
 import com.etozhesandy.redpanda.core.storage.db.attachment.AttachmentDao
@@ -62,6 +63,11 @@ class ChatRepositoryImpl @Inject constructor(
     override fun searchMessages(profileId: String, ftsQuery: String, dialogId: String?): Flow<List<Message>> =
         messageDao.searchMessages(profileId, ftsQuery, dialogId)
             .map { entities -> entities.map { it.toDomain() } }
+            .flowOn(defaultDispatcher)
+
+    override fun searchAllDialogs(profileId: String, ftsQuery: String): Flow<List<DialogMessage>> =
+        messageDao.searchAllDialogs(profileId, ftsQuery)
+            .map { rows -> rows.map { it.toDomain() } }
             .flowOn(defaultDispatcher)
 
     override suspend fun getAttachmentsForMessage(messageId: String): List<Attachment> =

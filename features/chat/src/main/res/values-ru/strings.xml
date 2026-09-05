@@ -21,4 +21,8 @@
     <string name="chat_search_placeholder">Поиск сообщений</string>
     <string name="chat_search_close">Закрыть поиск</string>
     <string name="chat_search_empty">Ничего не найдено</string>
+
+    <string name="global_search_placeholder">Поиск по всем диалогам</string>
+    <string name="global_search_close">Закрыть поиск</string>
+    <string name="global_search_empty">Ничего не найдено</string>
 </resources>

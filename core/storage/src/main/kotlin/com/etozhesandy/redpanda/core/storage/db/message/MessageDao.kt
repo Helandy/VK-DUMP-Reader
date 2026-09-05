@@ -34,6 +34,28 @@ interface MessageDao {
         limit: Int = SEARCH_RESULT_LIMIT,
     ): Flow<List<MessageEntity>>
 
+    /**
+     * The same full-text search across every dialog of one profile, joined to `dialogs` so each
+     * result can name the dialog it came from — out of a single chat's context the text alone
+     * doesn't say who it was with.
+     */
+    @Query(
+        """
+        SELECT messages.*, dialogs.peerName AS peerName FROM messages
+        JOIN messages_fts ON messages.rowId = messages_fts.rowid
+        JOIN dialogs ON dialogs.id = messages.dialogId
+        WHERE messages.profileId = :profileId
+        AND messages_fts MATCH :ftsQuery
+        ORDER BY messages.timestampEpoch DESC
+        LIMIT :limit
+        """,
+    )
+    fun searchAllDialogs(
+        profileId: String,
+        ftsQuery: String,
+        limit: Int = SEARCH_RESULT_LIMIT,
+    ): Flow<List<MessageWithDialogEntity>>
+
     companion object {
         const val SEARCH_RESULT_LIMIT = 200
     }
