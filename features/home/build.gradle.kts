@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:common"))
     implementation(project(":core:storage"))
+    implementation(project(":core:archive"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
 

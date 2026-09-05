@@ -26,8 +26,9 @@ fun ImportSourceCard(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
-    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+    Card(onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -36,7 +37,11 @@ fun ImportSourceCard(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = if (enabled) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(text = title, style = MaterialTheme.typography.titleMedium)

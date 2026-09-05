@@ -3,6 +3,7 @@
     <string name="home_title">Профили</string>
     <string name="home_action_settings">Настройки</string>
     <string name="home_action_import">Импортировать профиль</string>
+    <string name="home_import_in_progress">Импорт уже идёт</string>
     <string name="home_empty">Пока нет импортированных профилей.\nНажмите + чтобы добавить архив VK.</string>
 
     <string name="profile_source_with_status">%1$s · %2$s</string>

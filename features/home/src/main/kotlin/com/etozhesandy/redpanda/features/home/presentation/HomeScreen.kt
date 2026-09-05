@@ -6,8 +6,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +45,30 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onEvent(HomeState.Event.ImportClicked) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.home_action_import))
+            // FloatingActionButton has no `enabled`, so a running import is expressed as a
+            // dead button in the disabled colours: only one import may run at a time.
+            val importEnabled = !state.isImportRunning
+            FloatingActionButton(
+                onClick = { if (importEnabled) onEvent(HomeState.Event.ImportClicked) },
+                containerColor = if (importEnabled) {
+                    FloatingActionButtonDefaults.containerColor
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
+                contentColor = if (importEnabled) {
+                    contentColorFor(FloatingActionButtonDefaults.containerColor)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = if (importEnabled) {
+                        stringResource(R.string.home_action_import)
+                    } else {
+                        stringResource(R.string.home_import_in_progress)
+                    },
+                )
             }
         },
     ) {

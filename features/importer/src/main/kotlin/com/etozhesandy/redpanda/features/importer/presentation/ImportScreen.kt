@@ -22,7 +22,11 @@ import com.etozhesandy.redpanda.features.importer.presentation.utils.rememberDir
 import com.etozhesandy.redpanda.features.importer.presentation.view.ImportSourceCard
 import com.etozhesandy.redpanda.features.importer.presentation.view.NotificationPermissionGate
 
-/** [state] is [ImportState.State], which carries nothing — the screen is only a source picker. */
+/**
+ * A source picker: the picked archive or folder is handed to background work and the screen leaves.
+ * While an import is already running both cards are disabled — a second import started on top of
+ * the first one corrupts both.
+ */
 @Composable
 fun ImportScreen(
     state: ImportState.State,
@@ -53,15 +57,21 @@ fun ImportScreen(
                 title = stringResource(R.string.import_pick_archive),
                 description = stringResource(R.string.import_pick_archive_description),
                 onClick = pickArchive,
+                enabled = !state.isImportRunning,
             )
             ImportSourceCard(
                 icon = Icons.Default.FolderOpen,
                 title = stringResource(R.string.import_pick_folder),
                 description = stringResource(R.string.import_pick_folder_description),
                 onClick = pickDirectory,
+                enabled = !state.isImportRunning,
             )
             Text(
-                text = stringResource(R.string.import_background_note),
+                text = if (state.isImportRunning) {
+                    stringResource(R.string.import_already_running)
+                } else {
+                    stringResource(R.string.import_background_note)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 12.dp),

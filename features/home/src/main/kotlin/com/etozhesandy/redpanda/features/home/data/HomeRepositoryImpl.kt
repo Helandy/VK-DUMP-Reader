@@ -1,5 +1,6 @@
 package com.etozhesandy.redpanda.features.home.data
 
+import com.etozhesandy.redpanda.core.archive.worker.ProfileImportScheduler
 import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import com.etozhesandy.redpanda.core.common.files.ProfileDirectories
@@ -29,6 +30,7 @@ class HomeRepositoryImpl @Inject constructor(
     private val groupDao: GroupDao,
     private val savedPhotoDao: SavedPhotoDao,
     private val directories: ProfileDirectories,
+    private val importScheduler: ProfileImportScheduler,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : HomeRepository {
@@ -37,6 +39,8 @@ class HomeRepositoryImpl @Inject constructor(
         profileDao.observeProfiles()
             .map { entities -> entities.map { it.toDomain() } }
             .flowOn(defaultDispatcher)
+
+    override fun observeImportRunning(): Flow<Boolean> = importScheduler.observeImportRunning()
 
     /**
      * Deleting the profile's directory walks the whole extracted archive, which is gigabytes on a

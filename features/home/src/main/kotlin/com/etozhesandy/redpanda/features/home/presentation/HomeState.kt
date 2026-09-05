@@ -11,6 +11,8 @@ object HomeState {
     data class State(
         val profiles: List<Profile> = emptyList(),
         val isLoading: Boolean = true,
+        /** An import is already in flight; starting a second one breaks both. */
+        val isImportRunning: Boolean = false,
     ) : UiState
 
     sealed interface Event : UiEvent {

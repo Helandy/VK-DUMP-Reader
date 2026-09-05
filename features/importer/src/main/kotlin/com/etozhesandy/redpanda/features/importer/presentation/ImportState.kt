@@ -8,9 +8,12 @@ import com.etozhesandy.redpanda.core.common.mvi.UiState
 /** MVI-контракт экрана: состояние, события и одноразовые эффекты. */
 object ImportState {
 
-    /** The import itself runs as background work (see `ProfileImportScheduler`), so this screen is
-     * just a source picker — nothing to track once the pick has been dispatched. */
-    data object State : UiState
+    /**
+     * The import itself runs as background work (see `ProfileImportScheduler`), so this screen is
+     * mostly a source picker; [isImportRunning] is the one thing it tracks, because only one
+     * import may be in flight at a time.
+     */
+    data class State(val isImportRunning: Boolean = false) : UiState
 
     sealed interface Event : UiEvent {
         data class SourcePicked(val source: ArchiveSource) : Event

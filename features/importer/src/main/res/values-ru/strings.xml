@@ -7,6 +7,7 @@
     <string name="import_pick_folder">Выбрать папку</string>
     <string name="import_pick_folder_description">Экспорт уже распакован.</string>
     <string name="import_background_note">Импорт продолжится в фоне — можно сразу перейти к диалогам.</string>
+    <string name="import_already_running">Импорт уже идёт. Дождитесь его окончания — два импорта сразу ломают друг друга.</string>
 
     <string name="notification_rationale_title">Показывать ход импорта?</string>
     <string name="notification_rationale_message">Импорт идёт в фоне и может занять несколько минут. Уведомление покажет прогресс и сообщит, когда всё будет готово, даже если вы свернёте приложение. Ничего другого приложение не присылает.</string>

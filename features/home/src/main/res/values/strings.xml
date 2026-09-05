@@ -3,6 +3,7 @@
     <string name="home_title">Profiles</string>
     <string name="home_action_settings">Settings</string>
     <string name="home_action_import">Import a profile</string>
+    <string name="home_import_in_progress">An import is already running</string>
     <string name="home_empty">No profiles imported yet.\nTap + to add a VK archive.</string>
 
     <!-- One profile row: what it was imported from and, while that is still going, how it is doing. -->

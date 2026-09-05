@@ -7,6 +7,7 @@
     <string name="import_pick_folder">Pick a folder</string>
     <string name="import_pick_folder_description">The export is already unpacked.</string>
     <string name="import_background_note">The import continues in the background, so you can go straight to the dialogs.</string>
+    <string name="import_already_running">An import is already running. Wait for it to finish — two at once break each other.</string>
 
     <!-- Shown before the system permission sheet, which says nothing about what the notification is for. -->
     <string name="notification_rationale_title">Show import progress?</string>
