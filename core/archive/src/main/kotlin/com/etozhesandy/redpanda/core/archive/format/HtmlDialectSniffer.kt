@@ -45,7 +45,7 @@ class HtmlDialectSniffer @Inject constructor() {
     }
 
     private fun isHistoryPage(file: File): Boolean =
-        file.name.startsWith("history_") && file.extension.equals("html", ignoreCase = true)
+        file.name.startsWith("history_") && file.extension.lowercase() in historyExtensions
 
     private fun readHead(file: File): String {
         val buffer = ByteArray(SNIFF_BYTES)
@@ -67,5 +67,8 @@ class HtmlDialectSniffer @Inject constructor() {
         const val SNIFF_BYTES = 8 * 1024
         const val MAX_CONTACT_DIRS = 20
         val b00mMarkers = listOf("im_log_author", "\"im_in\"")
+
+        /** The same dumper writes either extension. */
+        val historyExtensions = setOf("html", "htm")
     }
 }

@@ -1,6 +1,7 @@
 package com.etozhesandy.redpanda.features.profile.presentation.profile
 
 import androidx.lifecycle.viewModelScope
+import com.etozhesandy.redpanda.core.common.importprogress.ImportProgressStore
 import com.etozhesandy.redpanda.core.common.mvi.BaseViewModel
 import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
@@ -20,6 +21,7 @@ class ProfileViewModel @Inject constructor(
     private val nav: INavigationManager,
     args: ProfileArgs,
     private val repository: ProfileInfoRepository,
+    importProgressStore: ImportProgressStore,
 ) : BaseViewModel<ProfileState.State, ProfileState.Event, ProfileState.Effect>() {
 
     override fun createInitialState() = ProfileState.State()
@@ -55,7 +57,18 @@ class ProfileViewModel @Inject constructor(
                 mediaCount = media.size,
                 isLoading = false,
             )
-        }.onEach { state -> setState { state } }.launchIn(viewModelScope)
+        }
+            // The database snapshot replaces the whole state, so the progress carried by the
+            // current one is copied over rather than reset to null on every emission.
+            .onEach { snapshot -> setState { snapshot.copy(importProgress = importProgress) } }
+            .launchIn(viewModelScope)
+
+        // Import lands here now, so the screen shows the same live counters the dialog list does.
+        // Kept out of the combine above: the store is a separate, in-process source whose updates
+        // must not wait on a database emission to reach the screen.
+        importProgressStore.observe(profileId)
+            .onEach { progress -> setState { copy(importProgress = progress) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: ProfileState.Event) {

@@ -34,8 +34,11 @@ class ImportViewModel @Inject constructor(
                 if (currentState.isImportRunning) return
                 val profileId = UUID.randomUUID().toString()
                 scheduler.enqueue(profileId, event.source)
+                // The profile, not its dialog list: an import brings friends, groups, saved
+                // photos and archive media too, and the profile is the one screen that shows all
+                // of it filling in — the dialogs are one tap from there.
                 // Home, not the import screen, is what "back" should reach once the import ran.
-                nav.navigate(Routes.Dialogs(profileId), PopUpTo(Routes.Home::class))
+                nav.navigate(Routes.Profile(profileId), PopUpTo(Routes.Home::class))
             }
             ImportState.Event.BackClicked -> nav.back()
         }

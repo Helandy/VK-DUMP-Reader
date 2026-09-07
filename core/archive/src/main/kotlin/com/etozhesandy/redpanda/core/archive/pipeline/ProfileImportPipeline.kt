@@ -1,15 +1,19 @@
 package com.etozhesandy.redpanda.core.archive.pipeline
 
 import android.content.Context
+import androidx.documentfile.provider.DocumentFile
 import com.etozhesandy.redpanda.core.archive.R
 import com.etozhesandy.redpanda.core.archive.extract.ArchiveExtractor
+import com.etozhesandy.redpanda.core.archive.extract.NestedArchiveNaming.EXTRACTED_SUFFIX
 import com.etozhesandy.redpanda.core.archive.format.ArchiveFormatDetector
+import com.etozhesandy.redpanda.core.archive.format.ArchiveLayout
 import com.etozhesandy.redpanda.core.archive.parse.ChatArchiveParserFactory
 import com.etozhesandy.redpanda.core.archive.parse.ParseSink
 import com.etozhesandy.redpanda.core.archive.scan.OrphanMediaScanner
 import com.etozhesandy.redpanda.core.archive.source.ArchiveSource
 import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import com.etozhesandy.redpanda.core.common.files.ProfileDirectories
+import com.etozhesandy.redpanda.core.common.files.isInside
 import com.etozhesandy.redpanda.core.common.importprogress.ImportProgressStore
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.ChatDialog
@@ -38,6 +42,7 @@ import com.etozhesandy.redpanda.core.storage.db.profile.ProfileEntity
 import com.etozhesandy.redpanda.core.storage.db.savedphoto.SavedPhotoDao
 import com.etozhesandy.redpanda.core.storage.db.savedphoto.toEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -78,11 +83,132 @@ class ProfileImportPipeline @Inject constructor(
     fun import(profileId: String, source: ArchiveSource): Flow<ImportProgress> = channelFlow {
         val startedAt = System.currentTimeMillis()
         // Mirrored to the store so any screen can show the same counters the notification does.
-        suspend fun emit(progress: ImportProgress) {
-            progressStore.publish(profileId, progress)
+        suspend fun emit(forProfile: String, progress: ImportProgress) {
+            progressStore.publish(forProfile, progress)
             send(progress)
         }
 
+        upsertPlaceholder(profileId, startedAt)
+
+        try {
+            emit(profileId, ImportProgress(ImportStage.COPYING))
+            val rawDir = directories.rawDir(profileId)
+            extractor.extract(source, rawDir)
+
+            emit(profileId, ImportProgress(ImportStage.EXTRACTING))
+            // A dump with no readable dialog history is still a valid import — plenty are just a
+            // folder of photos and videos — so an archive detection finds no export in is imported
+            // as one media-only profile rather than failing.
+            val layouts = formatDetector.detectAll(rawDir)
+                .ifEmpty { listOf(formatDetector.detect(rawDir)) }
+            // Plenty of archives name nothing inside them after the person they hold — a folder of
+            // photos, or several such folders side by side — so the file the user picked is the
+            // last thing left to call the profile. Without it those imported as "raw", after the
+            // directory they were unpacked into.
+            val sourceLabel = sourceLabel(source)
+
+            // The picked archive can hold several unrelated dumps, each its own profile. The first
+            // keeps the id the caller already created and the directory the archive was unpacked
+            // into; every other one is moved into a profile directory of its own, so erasing one
+            // profile cannot take another's files with it.
+            importOne(profileId, layouts.first(), rawDir, sourceLabel, startedAt, ::emit)
+
+            // One export failing is not the others' problem: each extra profile is imported on its
+            // own, and a failure marks that profile and moves on to the next.
+            for (detected in layouts.drop(1)) {
+                val extraId = UUID.randomUUID().toString()
+                val extraStartedAt = System.currentTimeMillis()
+                upsertPlaceholder(extraId, extraStartedAt)
+                try {
+                    val moved = moveToOwnDirectory(detected, layouts - detected, rawDir, extraId)
+                    importOne(extraId, moved, directories.rawDir(extraId), sourceLabel, extraStartedAt, ::emit)
+                } catch (t: Throwable) {
+                    profileDao.updateStatus(extraId, ProfileStatus.ERROR, System.currentTimeMillis())
+                    emit(extraId, ImportProgress(ImportStage.ERROR, message = t.message))
+                }
+            }
+        } catch (t: Throwable) {
+            profileDao.updateStatus(profileId, ProfileStatus.ERROR, System.currentTimeMillis())
+            // Deliberately not cleared: clearing here wiped the failure message on the very next
+            // line, leaving "ошибка импорта" with no way to find out what actually went wrong. The
+            // snapshot stays until the next import of this profile publishes over it.
+            emit(profileId, ImportProgress(ImportStage.ERROR, message = t.message))
+        }
+    }.flowOn(ioDispatcher)
+
+    /** Parses one detected export into [profileId] and marks that profile ready. */
+    private suspend fun importOne(
+        profileId: String,
+        layout: ArchiveLayout,
+        rawDir: File,
+        sourceLabel: String?,
+        startedAt: Long,
+        emit: suspend (String, ImportProgress) -> Unit,
+    ) {
+        val parser = parserFactory.create(layout.format)
+
+        emit(profileId, ImportProgress(ImportStage.PARSING))
+        val sink = RoomParseSink { progress -> emit(profileId, progress) }
+        parser?.parse(layout.contentRoot, profileId, sink)
+        messageDao.markMessagesWithAttachments(profileId)
+
+        // Scanning the whole extraction rather than the content root: real dumps keep media
+        // outside the folder detection settles on. Labels stay relative to the content root so
+        // the media screen's folder names don't gain the wrapper-directory prefix.
+        val orphanMedia = OrphanMediaScanner.scan(rawDir, labelRoot = layout.dumpRoot)
+            .filterNot { it.file.absolutePath in sink.localAttachmentPaths }
+            .map { orphan ->
+                Attachment(
+                    id = UUID.nameUUIDFromBytes(orphan.file.absolutePath.toByteArray()).toString(),
+                    messageId = null,
+                    dialogId = "",
+                    profileId = profileId,
+                    type = orphan.type,
+                    path = orphan.file.absolutePath,
+                    orderInMessage = 0,
+                    timestampEpoch = orphan.file.lastModified(),
+                    sourceFolder = orphan.folder,
+                )
+            }
+        if (orphanMedia.isNotEmpty()) attachmentDao.upsertAll(orphanMedia.map { it.toEntity() })
+
+        val finishedAt = System.currentTimeMillis()
+        val details = sink.profileDetails
+        profileDao.upsert(
+            ProfileEntity(
+                id = profileId,
+                sourceType = SourceType.VK,
+                displayName = sink.displayName
+                    ?: layout.profileName(rawDir)
+                    ?: sourceLabel
+                    ?: context.getString(R.string.import_profile_name_unknown),
+                avatarPath = details?.avatarPath,
+                rootDirPath = directories.profileDir(profileId).absolutePath,
+                status = ProfileStatus.READY,
+                importedAt = startedAt,
+                updatedAt = finishedAt,
+                vkId = details?.vkId,
+                screenName = details?.screenName,
+                birthDate = details?.birthDate,
+                sex = details?.sex ?: Sex.UNKNOWN,
+                country = details?.country,
+                city = details?.city,
+            ),
+        )
+        emit(
+            profileId,
+            ImportProgress(
+                ImportStage.DONE,
+                total = sink.savedMessageCount.get(),
+                message = profileId,
+                dialogsDone = sink.dialogsDone.get(),
+                dialogsTotal = sink.dialogsTotal.get(),
+            ),
+        )
+        progressStore.clear(profileId)
+    }
+
+    private suspend fun upsertPlaceholder(profileId: String, startedAt: Long) {
         profileDao.upsert(
             ProfileEntity(
                 id = profileId,
@@ -95,84 +221,71 @@ class ProfileImportPipeline @Inject constructor(
                 updatedAt = startedAt,
             ),
         )
+    }
 
-        try {
-            emit(ImportProgress(ImportStage.COPYING))
-            val rawDir = directories.rawDir(profileId)
-            extractor.extract(source, rawDir)
+    /**
+     * Moves one export out of the shared extraction and into [profileId]'s own `raw` directory,
+     * returning where its roots ended up.
+     *
+     * What moves is as much of the enclosing tree as this export can claim on its own — not just
+     * the content root, because a dump keeps media beside the folder detection settles on, and
+     * leaving that behind would strand it in another profile's directory. The climb stops before
+     * any directory that also holds one of [others], which is what keeps two dumps sharing a
+     * top-level folder from carrying each other off: one archive keeps both of its exports under a
+     * single folder, and moving that folder took the first profile's files with the second.
+     *
+     * A move that fails leaves everything where it is and the profile reads from the shared
+     * directory — a worse outcome only if that first profile is later erased, which beats failing
+     * an import that has already parsed.
+     */
+    private fun moveToOwnDirectory(
+        layout: ArchiveLayout,
+        others: List<ArchiveLayout>,
+        sharedRawDir: File,
+        profileId: String,
+    ): ArchiveLayout {
+        val top = generateSequence(layout.dumpRoot) { it.parentFile }
+            .takeWhile { it.isInside(sharedRawDir) }
+            .takeWhile { candidate -> others.none { it.dumpRoot.isInside(candidate) } }
+            .lastOrNull()
+            ?: return layout
+        val target = File(directories.rawDir(profileId).apply { mkdirs() }, top.name)
+        if (!top.renameTo(target)) return layout
+        return layout.copy(
+            contentRoot = layout.contentRoot.movedInto(top, target),
+            dumpRoot = layout.dumpRoot.movedInto(top, target),
+        )
+    }
 
-            emit(ImportProgress(ImportStage.EXTRACTING))
-            val layout = formatDetector.detect(rawDir)
-            // A dump with no readable dialog history is still a valid import — plenty are just a
-            // folder of photos and videos — so a layout with no parser skips parsing rather than
-            // failing the whole import, and the media scan below picks the files up.
-            val parser = parserFactory.create(layout.format)
+    private fun File.movedInto(from: File, to: File): File {
+        val relative = relativeToOrNull(from)?.path.orEmpty()
+        return if (relative.isEmpty()) to else File(to, relative)
+    }
 
-            emit(ImportProgress(ImportStage.PARSING))
-            val sink = RoomParseSink { progress -> emit(progress) }
-            parser?.parse(layout.contentRoot, profileId, sink)
-            messageDao.markMessagesWithAttachments(profileId)
+    /**
+     * What to call this profile when the export itself does not say — the nearest enclosing folder
+     * that is a name someone chose.
+     *
+     * Skips the directories unpacking invented: the extraction root itself, which is literally
+     * called `raw`, and the `*.extracted` wrapper a nested archive lands in.
+     */
+    private fun ArchiveLayout.profileName(rawDir: File): String? =
+        generateSequence(dumpRoot) { it.parentFile }
+            .takeWhile { it.isInside(rawDir) }
+            .firstOrNull { !it.name.endsWith(EXTRACTED_SUFFIX) }
+            ?.name
+            ?.ifBlank { null }
 
-            // Scanning the whole extraction rather than the content root: real dumps keep media
-            // outside the folder detection settles on. Labels stay relative to the content root so
-            // the media screen's folder names don't gain the wrapper-directory prefix.
-            val orphanMedia = OrphanMediaScanner.scan(rawDir, labelRoot = layout.contentRoot)
-                .filterNot { it.file.absolutePath in sink.localAttachmentPaths }
-                .map { orphan ->
-                    Attachment(
-                        id = UUID.nameUUIDFromBytes(orphan.file.absolutePath.toByteArray()).toString(),
-                        messageId = null,
-                        dialogId = "",
-                        profileId = profileId,
-                        type = orphan.type,
-                        path = orphan.file.absolutePath,
-                        orderInMessage = 0,
-                        timestampEpoch = orphan.file.lastModified(),
-                        sourceFolder = orphan.folder,
-                    )
-                }
-            if (orphanMedia.isNotEmpty()) attachmentDao.upsertAll(orphanMedia.map { it.toEntity() })
-
-            val finishedAt = System.currentTimeMillis()
-            val details = sink.profileDetails
-            profileDao.upsert(
-                ProfileEntity(
-                    id = profileId,
-                    sourceType = SourceType.VK,
-                    displayName = sink.displayName
-                        ?: layout.contentRoot.name.ifBlank { null }
-                        ?: context.getString(R.string.import_profile_name_unknown),
-                    avatarPath = details?.avatarPath,
-                    rootDirPath = directories.profileDir(profileId).absolutePath,
-                    status = ProfileStatus.READY,
-                    importedAt = startedAt,
-                    updatedAt = finishedAt,
-                    vkId = details?.vkId,
-                    screenName = details?.screenName,
-                    birthDate = details?.birthDate,
-                    sex = details?.sex ?: Sex.UNKNOWN,
-                    country = details?.country,
-                    city = details?.city,
-                ),
-            )
-            emit(
-                ImportProgress(
-                    ImportStage.DONE,
-                    total = sink.savedMessageCount.get(),
-                    message = profileId,
-                    dialogsDone = sink.dialogsDone.get(),
-                    dialogsTotal = sink.dialogsTotal.get(),
-                ),
-            )
-            progressStore.clear(profileId)
-        } catch (t: Throwable) {
-            profileDao.updateStatus(profileId, ProfileStatus.ERROR, System.currentTimeMillis())
-            // Deliberately not cleared: clearing here wiped the failure message on the very next
-            // line, leaving "ошибка импорта" with no way to find out what actually went wrong. The
-            // snapshot stays until the next import of this profile publishes over it.
-            emit(ImportProgress(ImportStage.ERROR, message = t.message))
+    /** The picked file or folder's own name, without an archive extension. */
+    private fun sourceLabel(source: ArchiveSource): String? {
+        val document = when (source) {
+            is ArchiveSource.ArchiveFile -> DocumentFile.fromSingleUri(context, source.uri)
+            is ArchiveSource.Directory -> DocumentFile.fromTreeUri(context, source.uri)
         }
-    }.flowOn(ioDispatcher)
+        val name = runCatching { document?.name }.getOrNull()?.trim().orEmpty()
+        if (name.isEmpty()) return null
+        return name.substringBeforeLast('.', name).ifBlank { name }
+    }
 
     private inner class RoomParseSink(
         private val emit: suspend (ImportProgress) -> Unit,

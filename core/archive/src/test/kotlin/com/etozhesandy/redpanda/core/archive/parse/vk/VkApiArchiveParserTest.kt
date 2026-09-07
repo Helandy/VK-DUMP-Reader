@@ -36,7 +36,7 @@ class VkApiArchiveParserTest {
         defaultDispatcher = Dispatchers.Unconfined,
     )
 
-    private val owner = """{"id":"1000","first_name":"Николай","last_name":"Андросов"}"""
+    private val owner = """{"id":"1000","first_name":"Пётр","last_name":"Сидоров"}"""
 
     /** Builds a dump with one peer directory and returns the content root. */
     private fun dump(
@@ -148,7 +148,7 @@ class VkApiArchiveParserTest {
             dump(
                 page = """[{"id":1,"from_id":7,"date":100,"text":"эй"}]""",
                 profile = """
-                    {"id":"1000","first_name":"Николай","last_name":"Андросов","sex":2,
+                    {"id":"1000","first_name":"Пётр","last_name":"Сидоров","sex":2,
                      "country":{"id":1,"title":"Россия"},"city":{"id":73,"title":"Калуга"}}
                 """.trimIndent(),
             ),
@@ -166,7 +166,7 @@ class VkApiArchiveParserTest {
             dump(
                 page = """[{"id":1,"from_id":7,"date":100,"text":"эй"}]""",
                 profile = """
-                    {"id":"1000","first_name":"Николай","country":"Россия","city":"Калуга"}
+                    {"id":"1000","first_name":"Пётр","country":"Россия","city":"Калуга"}
                 """.trimIndent(),
             ),
         )
@@ -198,7 +198,7 @@ class VkApiArchiveParserTest {
         val sink = parse(dump("""[{"id":1,"from_id":7,"date":100,"text":"эй"}]"""))
 
         assertEquals(1, sink.dialogsDiscovered)
-        assertEquals("Николай Андросов", sink.displayName)
+        assertEquals("Пётр Сидоров", sink.displayName)
     }
 
     /** An unreadable page loses its messages, never the dialog it belongs to. */

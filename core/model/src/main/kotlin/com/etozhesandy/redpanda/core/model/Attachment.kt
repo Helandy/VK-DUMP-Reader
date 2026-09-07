@@ -17,9 +17,11 @@ package com.etozhesandy.redpanda.core.model
  * track's artist and title, a link's title, an excerpt of a wall post. Null when the media speaks
  * for itself.
  *
- * [sourceFolder] is set only for files discovered by scanning the raw archive for media the
- * parser itself never referenced (see `OrphanMediaScanner`) — the folder path, relative to the
- * archive's content root, that the file was found in. It's null for every other attachment.
+ * [sourceFolder] is the folder the file lives in inside the archive, relative to its content root.
+ * It is set for every attachment backed by a file the import actually holds — those the parser
+ * resolved to a downloaded copy, and those found by scanning for media no parser referenced (see
+ * `OrphanMediaScanner`) — and is what lists a file among the archive's own media. Null for an
+ * attachment that only points at a remote URL, which is no file of the archive's.
  */
 data class Attachment(
     val id: String,

@@ -7,6 +7,7 @@ import com.etozhesandy.redpanda.core.archive.parse.html.dialect.B00mHtmlDialect
 import com.etozhesandy.redpanda.core.archive.parse.html.dialect.TorrentVkHtmlDialect
 import com.etozhesandy.redpanda.core.archive.parse.html.dialect.VkClassicHtmlDialect
 import com.etozhesandy.redpanda.core.archive.parse.vk.VkApiArchiveParser
+import com.etozhesandy.redpanda.core.archive.parse.vk.VkJsonDumpArchiveParser
 import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import javax.inject.Inject
@@ -22,6 +23,7 @@ import kotlinx.coroutines.CoroutineDispatcher
  */
 class ChatArchiveParserFactory @Inject constructor(
     private val vkApiParser: VkApiArchiveParser,
+    private val vkJsonDumpParser: VkJsonDumpArchiveParser,
     private val classicDialect: VkClassicHtmlDialect,
     private val b00mDialect: B00mHtmlDialect,
     private val torrentDialect: TorrentVkHtmlDialect,
@@ -33,6 +35,7 @@ class ChatArchiveParserFactory @Inject constructor(
         DetectedFormat.VK_HTML_CLASSIC -> htmlParser(classicDialect)
         DetectedFormat.VK_HTML_B00M -> htmlParser(b00mDialect)
         DetectedFormat.VK_API -> vkApiParser
+        DetectedFormat.VK_JSON_DUMP -> vkJsonDumpParser
         DetectedFormat.VK_HTML_TORRENT -> htmlParser(torrentDialect)
         DetectedFormat.MEDIA_ONLY -> null
     }

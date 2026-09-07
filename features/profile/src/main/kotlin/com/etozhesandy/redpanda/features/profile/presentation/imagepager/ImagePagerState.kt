@@ -9,8 +9,21 @@ import com.etozhesandy.redpanda.core.common.mvi.UiState
 /** MVI-контракт экрана: состояние, события и одноразовые эффекты. */
 object ImagePagerState {
 
+    /** The message a pictured item was sent in, and the dialog to open at it. */
+    data class MessageAnchor(
+        val dialogId: String,
+        val profileId: String,
+        val messageId: String,
+    )
+
+    /**
+     * [anchor] is null when nothing links the image back to a conversation: a saved photo never
+     * was in one, and VK's flat gallery export carries no message of its own.
+     */
+    data class Page(val url: String, val anchor: MessageAnchor? = null)
+
     data class State(
-        val urls: List<String> = emptyList(),
+        val pages: List<Page> = emptyList(),
         val startIndex: Int = 0,
         val isLoading: Boolean = true,
     ) : UiState
@@ -18,6 +31,7 @@ object ImagePagerState {
     sealed interface Event : UiEvent {
         data object BackClicked : Event
         data class DownloadClicked(val url: String) : Event
+        data class JumpToMessageClicked(val anchor: MessageAnchor) : Event
     }
 
     sealed interface Effect : UiEffect {

@@ -38,11 +38,15 @@ class HtmlDialogArchiveParser(
             val dialogsRoot = dialect.dialogsRoot(contentRoot)
             val ownerNameCounts = ConcurrentHashMap<String, Int>()
 
+            // Filtered to folders this dialect can actually name a peer from: an export without
+            // the `Диалоги/` wrapper keeps its media folders (`all_images/`, `all_videos/`) beside
+            // the categories, and those would otherwise be counted as dialogs that never arrive.
             val contactDirs = dialogsRoot.listFiles { file -> file.isDirectory }.orEmpty()
                 .flatMap { categoryDir ->
                     categoryDir.listFiles { file -> file.isDirectory }.orEmpty()
                         .map { contactDir -> categoryDir.name to contactDir }
                 }
+                .filter { (_, contactDir) -> dialect.contactFolder(contactDir) != null }
 
             sink.onDialogsDiscovered(contactDirs.size)
 

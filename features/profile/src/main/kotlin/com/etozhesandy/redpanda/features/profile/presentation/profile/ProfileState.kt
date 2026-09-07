@@ -3,6 +3,7 @@ package com.etozhesandy.redpanda.features.profile.presentation.profile
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.Friend
 import com.etozhesandy.redpanda.core.model.Group
+import com.etozhesandy.redpanda.core.model.ImportProgress
 import com.etozhesandy.redpanda.core.model.Profile
 import com.etozhesandy.redpanda.core.model.SavedPhoto
 import com.etozhesandy.redpanda.core.common.mvi.UiEffect
@@ -25,6 +26,7 @@ object ProfileState {
         val attachmentsCount: Int = 0,
         val mediaPreview: List<Attachment> = emptyList(),
         val mediaCount: Int = 0,
+        val importProgress: ImportProgress? = null,
         val isLoading: Boolean = true,
     ) : UiState
 

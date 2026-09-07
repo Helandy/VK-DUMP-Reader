@@ -88,12 +88,12 @@ class ZipExtractionTest {
     fun `a directory name containing regex metacharacters is still decoded`() {
         val destination = extract(
             TestZipWriter()
-                .addUnflagged("Профиль/инцест+тройнички (id1)/", cp866)
-                .addUnflagged("Профиль/инцест+тройнички (id1)/history_1.html", cp866, "x"),
+                .addUnflagged("Профиль/фото+видео (id1)/", cp866)
+                .addUnflagged("Профиль/фото+видео (id1)/history_1.html", cp866, "x"),
         )
 
         assertEquals(
-            setOf("Профиль/инцест+тройнички (id1)/history_1.html"),
+            setOf("Профиль/фото+видео (id1)/history_1.html"),
             destination.extractedFiles(),
         )
         assertEquals(listOf("Профиль"), destination.list()?.toList())
@@ -147,6 +147,37 @@ class ZipExtractionTest {
      * rather than left to zip4j — and a traversal entry cannot be waved through just because the
      * rest of the archive needed repairing.
      */
+    /**
+     * The case an archive-wide charset choice cannot get right.
+     *
+     * Both names arrive with the UTF-8 flag clear, so both need repairing, but they need repairing
+     * *differently* — one holds CP866 bytes and the other UTF-8 bytes. Deciding once for the whole
+     * archive mangles whichever half loses the vote; deciding per entry gets both.
+     */
+    @Test
+    fun `cp866 and unflagged utf8 names in one archive both decode correctly`() {
+        val destination = extract(
+            TestZipWriter()
+                .addUnflagged("Диалоги/Аня (id1)/history_1.html", cp866, content = "cp866")
+                .addUnflaggedUtf8Bytes("Вложения/фото.jpg", content = "utf8"),
+        )
+
+        assertEquals(
+            setOf("Диалоги/Аня (id1)/history_1.html", "Вложения/фото.jpg"),
+            destination.extractedFiles(),
+        )
+    }
+
+    /** Windows GUI tools occasionally write CP1251 where the DOS codepage is expected. */
+    @Test
+    fun `a cp1251 name is not read as cp866`() {
+        val destination = extract(
+            TestZipWriter().addUnflagged("Диалоги/Аня (id1)/history_1.html", Charset.forName("windows-1251")),
+        )
+
+        assertEquals(setOf("Диалоги/Аня (id1)/history_1.html"), destination.extractedFiles())
+    }
+
     @Test
     fun `an entry that escapes the destination is skipped`() {
         val destination = extract(

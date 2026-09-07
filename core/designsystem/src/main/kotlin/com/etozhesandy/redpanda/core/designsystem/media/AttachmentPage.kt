@@ -23,6 +23,7 @@ fun AttachmentPage(
     isCurrentPage: Boolean,
     videoPlayer: @Composable (uri: String, autoPlay: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    zoom: ZoomState? = null,
 ) {
     when {
         attachment.path.isBlank() ->
@@ -36,7 +37,9 @@ fun AttachmentPage(
             model = if (attachment.path.startsWith("http")) attachment.path else File(attachment.path),
             contentDescription = null,
             contentScale = ContentScale.Fit,
-            modifier = modifier.fillMaxSize(),
+            // Only a still image zooms — a video is played rather than examined, and a
+            // placeholder has no detail to magnify.
+            modifier = modifier.fillMaxSize().let { if (zoom != null) it.zoomable(zoom) else it },
         )
 
         else -> AttachmentPlaceholder(attachment.type, attachment.caption, modifier)

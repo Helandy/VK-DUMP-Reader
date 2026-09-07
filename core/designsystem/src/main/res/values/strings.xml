@@ -18,6 +18,7 @@
     <!-- Toolbar controls shared by every screen. -->
     <string name="action_back">Back</string>
     <string name="action_download">Save to phone</string>
+    <string name="action_go_to_message">Go to the message</string>
 
     <!-- Outcome of saving media from a viewer; the argument is the folder under Download/. -->
     <string name="download_saved_to">Saved to Download/%1$s</string>
@@ -36,4 +37,6 @@
     <string name="sort_option_message_count">By message count</string>
     <string name="sort_option_sender">By sender</string>
     <string name="sort_option_title">By title</string>
+    <string name="import_banner_progress">Importing: %1$d of %2$d dialogs</string>
+    <string name="import_banner_indeterminate">Importing…</string>
 </resources>

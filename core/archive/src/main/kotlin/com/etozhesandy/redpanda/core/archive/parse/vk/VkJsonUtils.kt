@@ -2,7 +2,9 @@ package com.etozhesandy.redpanda.core.archive.parse.vk
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
@@ -83,3 +85,56 @@ internal fun formatDuration(seconds: Long): String {
         "%d:%02d".format(minutes, remainder)
     }
 }
+
+/**
+ * These exports save each JSON payload as a JS assignment — `messages=[...]` in the API-dump
+ * layout, `let dialogjson = {...}` in the JSON-dump one — so the leading binding is peeled off
+ * before the rest is parsed. The 40-character bound keeps a `=` inside actual JSON content from
+ * being mistaken for one: no real binding is longer, and the first `=` of a bare payload is far
+ * deeper in.
+ */
+internal fun stripJsAssignment(raw: String): String {
+    val trimmed = raw.trim()
+    val eq = trimmed.indexOf('=')
+    return if (eq in 1..40) trimmed.substring(eq + 1).trim().removeSuffix(";") else trimmed
+}
+
+/**
+ * A person's display name, or a community's. Both key casings occur: the API dump writes
+ * `first_name`/`last_name`, the JSON dump `firstName`/`lastName` — and a group carries a single
+ * `name` instead of either.
+ */
+internal fun personName(entity: JsonObject): String? {
+    val name = listOfNotNull(
+        entity.str("first_name", "firstName"),
+        entity.str("last_name", "lastName"),
+    ).joinToString(" ").trim()
+    return name.ifBlank { entity.str("name") }
+}
+
+/** `https://vk.com/{kind}{ownerId}_{id}` — how VK addresses a post or a video on the web. */
+internal fun vkPermalink(kind: String, ownerId: Long?, id: Long?): String =
+    if (ownerId == null || id == null) "" else "https://vk.com/$kind${ownerId}_$id"
+
+/**
+ * A sticker's image. VK exports identify a sticker by number only, with no URL anywhere in the
+ * dump, but its artwork is served under a stable public path — so the id is enough to show it.
+ */
+internal fun vkStickerUrl(stickerId: Long): String = "https://vk.com/sticker/1-$stickerId-512"
+
+/** The export splits a document's name from its extension, and sometimes repeats it in both. */
+internal fun documentName(body: JsonObject): String? {
+    val title = body.str("Title", "title") ?: return null
+    val extension = body.str("Ext", "ext") ?: return title
+    return if (title.endsWith(".$extension", ignoreCase = true)) title else "$title.$extension"
+}
+
+/**
+ * This element as a bare id. The JSON-dump layout stores a quote or a forward as either the id of
+ * another message or the message itself, so the two shapes have to be told apart before either is
+ * read — and `JsonNull` is a [JsonPrimitive] too, hence the explicit exclusion.
+ */
+internal fun JsonElement?.asId(): String? = (this as? JsonPrimitive)
+    ?.takeIf { it !is JsonNull }
+    ?.contentOrNull
+    ?.takeIf { it.isNotBlank() }

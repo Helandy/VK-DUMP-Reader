@@ -13,8 +13,6 @@
     <string name="dialogs_dialog_added">Dialog with %1$s added</string>
 
     <!-- Live import status above the list. -->
-    <string name="dialogs_import_banner_progress">Importing: %1$d of %2$d dialogs</string>
-    <string name="dialogs_import_banner_indeterminate">Importing…</string>
 
     <plurals name="dialogs_message_count">
         <item quantity="one">%1$d message</item>

@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.etozhesandy.redpanda.core.designsystem.components.BaseScreen
+import com.etozhesandy.redpanda.core.designsystem.components.ImportBanner
 import com.etozhesandy.redpanda.core.designsystem.components.DIALOG_SORT_OPTIONS
 import com.etozhesandy.redpanda.core.designsystem.components.LoadableContent
 import com.etozhesandy.redpanda.core.designsystem.components.ScrollToTopOnChange
@@ -31,7 +32,6 @@ import com.etozhesandy.redpanda.features.dialogs.R
 import com.etozhesandy.redpanda.features.dialogs.presentation.DialogsState
 import com.etozhesandy.redpanda.features.dialogs.presentation.view.CategoryChips
 import com.etozhesandy.redpanda.features.dialogs.presentation.view.DialogListItem
-import com.etozhesandy.redpanda.features.dialogs.presentation.view.ImportBanner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 

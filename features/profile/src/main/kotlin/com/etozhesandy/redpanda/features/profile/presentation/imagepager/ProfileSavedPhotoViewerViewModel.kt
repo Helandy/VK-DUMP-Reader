@@ -36,7 +36,7 @@ class ProfileSavedPhotoViewerViewModel @Inject constructor(
         repository.observeSavedPhotos(args.profileId)
             .onEach { photos ->
                 val startIndex = photos.indexOfFirst { it.id == args.startPhotoId }.coerceAtLeast(0)
-                setState { copy(urls = photos.map { it.url }, startIndex = startIndex, isLoading = false) }
+                setState { copy(pages = photos.map { ImagePagerState.Page(it.url) }, startIndex = startIndex, isLoading = false) }
             }
             .launchIn(viewModelScope)
     }
@@ -44,6 +44,10 @@ class ProfileSavedPhotoViewerViewModel @Inject constructor(
     override fun onEvent(event: ImagePagerState.Event) {
         when (event) {
             ImagePagerState.Event.BackClicked -> nav.back()
+
+            // A saved photo was never sent in a conversation, so there is nowhere to jump to and
+            // the screen never offers the action.
+            is ImagePagerState.Event.JumpToMessageClicked -> Unit
 
             is ImagePagerState.Event.DownloadClicked -> launchSafe {
                 val savedTo = imageDownloader.download(event.url, profileName, context.getString(R.string.download_folder_saved_photos)).getOrNull()

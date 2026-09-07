@@ -319,19 +319,8 @@ class VkApiArchiveParser @Inject constructor(
         }
     }
 
-    /** `https://vk.com/{kind}{ownerId}_{id}` — how VK addresses a post or a video on the web. */
-    private fun permalink(kind: String, body: JsonObject): String {
-        val ownerId = body.long("owner_id", "OwnerId") ?: return ""
-        val id = body.long("id", "video_id", "Id") ?: return ""
-        return "https://vk.com/$kind${ownerId}_$id"
-    }
-
-    /** The export splits a document's name from its extension, and sometimes repeats it in both. */
-    private fun documentName(body: JsonObject): String? {
-        val title = body.str("Title", "title") ?: return null
-        val extension = body.str("Ext", "ext") ?: return title
-        return if (title.endsWith(".$extension", ignoreCase = true)) title else "$title.$extension"
-    }
+    private fun permalink(kind: String, body: JsonObject): String =
+        vkPermalink(kind, body.long("owner_id", "OwnerId"), body.long("id", "video_id", "Id"))
 
     /**
      * Every attachment of [message], including those of the messages it quotes or forwards. VK
@@ -439,23 +428,8 @@ class VkApiArchiveParser @Inject constructor(
         return runCatching { cast(json.parseToJsonElement(stripJsAssignment(raw))) }.getOrNull()
     }
 
-    private fun personName(entity: JsonObject): String? {
-        val name = listOfNotNull(
-            entity.str("first_name"),
-            entity.str("last_name"),
-        ).joinToString(" ").trim()
-        return name.ifBlank { entity.str("name") }
-    }
-
     /** A place VK writes either as a plain string or as an `{id, title}` object. */
     private fun JsonObject.placeName(key: String): String? = str(key) ?: obj(key)?.str("title", "name")
-
-    /** These exports save each JSON payload as a JS assignment, e.g. `messages=[...]`. */
-    private fun stripJsAssignment(raw: String): String {
-        val trimmed = raw.trim()
-        val eq = trimmed.indexOf('=')
-        return if (eq in 1..40) trimmed.substring(eq + 1).trim().removeSuffix(";") else trimmed
-    }
 
     private companion object {
         const val BATCH_SIZE = 2000

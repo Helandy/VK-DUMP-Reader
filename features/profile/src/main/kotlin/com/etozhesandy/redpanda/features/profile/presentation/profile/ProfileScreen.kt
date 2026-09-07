@@ -14,7 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.etozhesandy.redpanda.core.common.net.openExternally
+import com.etozhesandy.redpanda.core.model.ProfileStatus
 import com.etozhesandy.redpanda.core.designsystem.components.BaseScreen
+import com.etozhesandy.redpanda.core.designsystem.components.ImportBanner
 import com.etozhesandy.redpanda.core.designsystem.components.LoadingState
 import com.etozhesandy.redpanda.features.profile.R
 import com.etozhesandy.redpanda.features.profile.presentation.profile.view.AttachmentsPreviewSection
@@ -58,6 +60,11 @@ fun ProfileScreen(
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             state.profile?.let { profile ->
+                // An import is sent straight here once it starts, so the profile it is still
+                // filling in says so instead of looking like a half-empty finished one.
+                if (profile.status == ProfileStatus.IMPORTING) {
+                    item { ImportBanner(progress = state.importProgress, modifier = Modifier.fillMaxWidth()) }
+                }
                 item { ProfileHeader(profile) }
                 item {
                     Button(

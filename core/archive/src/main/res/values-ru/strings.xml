@@ -22,4 +22,5 @@
     <string name="delete_notification_title">Удаление профиля</string>
     <string name="delete_notification_channel">Удаление профиля</string>
     <string name="delete_notification_text">Удаляем импортированные данные…</string>
+    <string name="archive_not_enough_space">Недостаточно места: нужно около %1$s, свободно %2$s. Освободите место и повторите импорт</string>
 </resources>

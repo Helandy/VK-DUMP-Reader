@@ -26,4 +26,5 @@
     <!-- Reasons an archive can\'t be unpacked. -->
     <string name="archive_format_unknown">Couldn\'t detect the archive format: .zip and .rar are supported</string>
     <string name="archive_too_large_or_broken">The archive is too large or damaged</string>
+    <string name="archive_not_enough_space">Not enough free space: about %1$s is needed, %2$s is free. Free some space and try again</string>
 </resources>

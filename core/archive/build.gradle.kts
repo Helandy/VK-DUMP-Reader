@@ -47,3 +47,25 @@ dependencies {
 
     testImplementation(libs.junit)
 }
+
+/**
+ * Developer tool, not part of any check: runs the real extraction and format detection over a
+ * folder of real archives and prints what each one was recognised as. See
+ * `ArchiveDetectionMatrix` for why it exists.
+ *
+ *     ./gradlew :core:archive:detectionMatrix -Parchives="/path/to/exampl"
+ *
+ * Without `-Parchives` it passes immediately, so it stays harmless anywhere it gets run.
+ */
+tasks.register<Test>("detectionMatrix") {
+    group = "verification"
+    description = "Prints the detected layout of every archive in -Parchives=<dir>."
+    val unitTest = tasks.named<Test>("testDebugUnitTest")
+    testClassesDirs = files(unitTest.map { it.testClassesDirs })
+    classpath = files(unitTest.map { it.classpath })
+    filter { includeTestsMatching("*ArchiveDetectionMatrix*") }
+    systemProperty("redpanda.archives", providers.gradleProperty("archives").getOrElse(""))
+    testLogging { showStandardStreams = true }
+    // The corpus on disk is the input, and Gradle cannot see it change.
+    outputs.upToDateWhen { false }
+}

@@ -1,4 +1,4 @@
-package com.etozhesandy.redpanda.features.dialogs.presentation.view
+package com.etozhesandy.redpanda.core.designsystem.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.etozhesandy.redpanda.core.model.ImportProgress
-import com.etozhesandy.redpanda.features.dialogs.R
+import com.etozhesandy.redpanda.core.designsystem.R
 
 /**
- * Live import status. The dialog counters only exist while the import is running in this process
- * (see `ImportProgressStore`), so a spinner and a plain caption stand in whenever they are absent —
- * on a cold start into an import already in flight, for instance.
+ * Live import status, shown by every screen a running import can land on.
+ *
+ * The dialog counters only exist while the import is running in this process (see
+ * `ImportProgressStore`), so a spinner and a plain caption stand in whenever they are absent — on a
+ * cold start into an import already in flight, for instance.
  */
 @Composable
 fun ImportBanner(progress: ImportProgress?, modifier: Modifier = Modifier) {
@@ -33,9 +35,9 @@ fun ImportBanner(progress: ImportProgress?, modifier: Modifier = Modifier) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 Text(
                     text = if (total > 0) {
-                        stringResource(R.string.dialogs_import_banner_progress, done, total)
+                        stringResource(R.string.import_banner_progress, done, total)
                     } else {
-                        stringResource(R.string.dialogs_import_banner_indeterminate)
+                        stringResource(R.string.import_banner_indeterminate)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 12.dp),

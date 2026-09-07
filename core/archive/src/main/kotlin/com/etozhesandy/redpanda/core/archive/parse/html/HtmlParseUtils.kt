@@ -25,6 +25,17 @@ object HtmlParseUtils {
     /** Pulls `123` out of anything shaped like `https://vk.com/id123`. */
     fun extractVkId(text: String): String? = idRegex.find(text)?.groupValues?.get(1)
 
+    /**
+     * Where the `{категория}/{контакт}` tree starts: the [wrapper] directory when the export has
+     * one, and [contentRoot] itself when it does not.
+     *
+     * Both shapes are real. The same dumper's markup has been seen written straight into the export
+     * root, with the category folders (`telki/`, `parni/`) as its immediate children and no
+     * `Диалоги/` above them — insisting on the wrapper imported those archives with zero dialogs.
+     */
+    fun dialogsRoot(contentRoot: File, wrapper: String): File =
+        File(contentRoot, wrapper).takeIf { it.isDirectory } ?: contentRoot
+
     /** Files in [dir] whose name matches [regex], ordered by the number in its first group. */
     fun numberedPages(dir: File, regex: Regex): List<File> =
         dir.listFiles { file -> file.isFile && regex.matches(file.name) }

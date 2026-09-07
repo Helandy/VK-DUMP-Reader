@@ -5,6 +5,11 @@ package com.etozhesandy.redpanda.core.archive.format
  * (`Диалоги/{категория}/{Имя (idN)}/history_N.html`) but carry completely different markup, so they
  * are told apart by sniffing a history file rather than by paths alone — see [HtmlDialectSniffer].
  *
+ * The two JSON layouts are told apart by paths alone and share no schema: [VK_API] keeps raw
+ * `messages.getHistory` responses under `messages/{peerId}/`, while [VK_JSON_DUMP] writes one
+ * `json/dialogs/{peerId}.json` per dialog in its own abbreviated shape, next to the offline HTML
+ * viewer that reads it.
+ *
  * [MEDIA_ONLY] is not a failure: plenty of real dumps are just a folder of photos and videos with
  * no dialog history at all, and those import fine as a media library.
  */
@@ -13,5 +18,6 @@ enum class DetectedFormat {
     VK_HTML_B00M,
     VK_HTML_TORRENT,
     VK_API,
+    VK_JSON_DUMP,
     MEDIA_ONLY,
 }

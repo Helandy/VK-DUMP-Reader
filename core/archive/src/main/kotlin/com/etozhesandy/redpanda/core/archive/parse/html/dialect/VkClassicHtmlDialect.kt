@@ -26,7 +26,7 @@ class VkClassicHtmlDialect @Inject constructor() : HtmlDialect {
 
     override val timestampPattern: String = "dd.MM.yyyy, HH:mm:ss"
 
-    override fun dialogsRoot(contentRoot: File): File = File(contentRoot, "Диалоги")
+    override fun dialogsRoot(contentRoot: File): File = HtmlParseUtils.dialogsRoot(contentRoot, "Диалоги")
 
     override fun contactFolder(dir: File): HtmlContactFolder? = HtmlParseUtils.parseVkFolderName(dir.name)
 
@@ -126,6 +126,6 @@ class VkClassicHtmlDialect @Inject constructor() : HtmlDialect {
         const val DOC_LABEL = "Документ "
         const val AUDIO_LABEL = "Аудио"
 
-        val historyPageRegex = Regex("""history_(\d+)\.html""")
+        val historyPageRegex = Regex("""history_(\d+)\.html?""")
     }
 }

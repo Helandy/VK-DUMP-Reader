@@ -16,7 +16,6 @@
     <string name="chat_action_favorite">Избранное</string>
     <string name="chat_action_play">Играть</string>
     <string name="chat_action_pause">Пауза</string>
-    <string name="chat_action_go_to_message">Перейти к сообщению</string>
 
     <string name="chat_search_placeholder">Поиск сообщений</string>
     <string name="chat_search_close">Закрыть поиск</string>

@@ -15,6 +15,7 @@
 
     <string name="action_back">Назад</string>
     <string name="action_download">Сохранить на телефон</string>
+    <string name="action_go_to_message">Перейти к сообщению</string>
 
     <string name="download_saved_to">Сохранено в Download/%1$s</string>
     <string name="download_failed">Не удалось сохранить</string>
@@ -30,4 +31,6 @@
     <string name="sort_option_message_count">По числу сообщений</string>
     <string name="sort_option_sender">По отправителю</string>
     <string name="sort_option_title">По названию</string>
+    <string name="import_banner_progress">Импортируется: %1$d из %2$d диалогов</string>
+    <string name="import_banner_indeterminate">Импортируется…</string>
 </resources>

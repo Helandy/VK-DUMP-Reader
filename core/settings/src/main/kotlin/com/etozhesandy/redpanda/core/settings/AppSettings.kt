@@ -18,7 +18,7 @@ data class AppSettings(
 ) {
     companion object {
         const val DEFAULT_COIL_CACHE_SIZE_MB = 500
-        const val DEFAULT_MEDIA_IMAGE_WIDTH_DP = 120
+        const val DEFAULT_MEDIA_IMAGE_WIDTH_DP = 100
 
         const val COIL_CACHE_MIN_MB = 100
         const val COIL_CACHE_MAX_MB = 2000
