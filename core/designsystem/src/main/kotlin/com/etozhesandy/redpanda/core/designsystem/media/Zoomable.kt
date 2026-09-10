@@ -1,7 +1,11 @@
 package com.etozhesandy.redpanda.core.designsystem.media
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroidSize
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -12,9 +16,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import kotlin.math.abs
 
 /** Scale a double tap zooms to, and returns from. */
@@ -80,10 +88,53 @@ fun rememberZoomState(maxScale: Float = 4f): ZoomState = remember(maxScale) { Zo
 fun Modifier.zoomable(state: ZoomState): Modifier = this
     .onSizeChanged { state.onSize(it) }
     .pointerInput(state) { detectTapGestures(onDoubleTap = { state.onDoubleTap() }) }
-    .pointerInput(state) { detectTransformGestures { _, pan, zoom, _ -> state.onGesture(pan, zoom) } }
+    .pointerInput(state) { detectZoomAndPan(state) }
     .graphicsLayer {
         scaleX = state.scale
         scaleY = state.scale
         translationX = state.offset.x
         translationY = state.offset.y
     }
+
+/**
+ * Pinch-to-zoom and panning that leave the pager's page turn alone.
+ *
+ * Compose's own `detectTransformGestures` consumes every drag past the touch slop, a one-finger
+ * one included, so a sideways swipe over a photo was eaten by the image — pointer input runs
+ * child-first, and [MediaPagerScreen]'s pager above never saw the gesture. A single finger is
+ * only ours while the image is magnified and there is something to pan; at 1x its events are
+ * left unconsumed and the swipe reaches the pager.
+ */
+private suspend fun PointerInputScope.detectZoomAndPan(state: ZoomState) {
+    awaitEachGesture {
+        val touchSlop = viewConfiguration.touchSlop
+        var pastTouchSlop = false
+        var zoom = 1f
+        var pan = Offset.Zero
+
+        awaitFirstDown(requireUnconsumed = false)
+        do {
+            val event = awaitPointerEvent()
+            val canceled = event.changes.fastAny { it.isConsumed }
+            val isTransform = event.changes.count { it.pressed } > 1 || state.isZoomed
+            if (!canceled && isTransform) {
+                val zoomChange = event.calculateZoom()
+                val panChange = event.calculatePan()
+
+                if (!pastTouchSlop) {
+                    zoom *= zoomChange
+                    pan += panChange
+                    val zoomMotion = abs(1 - zoom) * event.calculateCentroidSize(useCurrent = false)
+                    pastTouchSlop = zoomMotion > touchSlop || pan.getDistance() > touchSlop
+                }
+
+                if (pastTouchSlop) {
+                    if (zoomChange != 1f || panChange != Offset.Zero) {
+                        state.onGesture(panChange, zoomChange)
+                    }
+                    event.changes.fastForEach { if (it.positionChanged()) it.consume() }
+                }
+            }
+        } while (!canceled && event.changes.fastAny { it.pressed })
+    }
+}

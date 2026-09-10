@@ -24,6 +24,10 @@
     <string name="download_saved_to">Saved to Download/%1$s</string>
     <string name="download_failed">Couldn\'t save</string>
 
+    <!-- Playback controls over a video in a viewer. -->
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
+
     <!-- Sort menu: the control itself and the direction it currently sorts in. -->
     <string name="action_sort">Sort</string>
     <string name="action_sort_ascending">Sort, ascending</string>

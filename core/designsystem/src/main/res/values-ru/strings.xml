@@ -20,6 +20,9 @@
     <string name="download_saved_to">Сохранено в Download/%1$s</string>
     <string name="download_failed">Не удалось сохранить</string>
 
+    <string name="action_play">Воспроизвести</string>
+    <string name="action_pause">Пауза</string>
+
     <string name="action_sort">Сортировка</string>
     <string name="action_sort_ascending">Сортировка, по возрастанию</string>
     <string name="action_sort_descending">Сортировка, по убыванию</string>
