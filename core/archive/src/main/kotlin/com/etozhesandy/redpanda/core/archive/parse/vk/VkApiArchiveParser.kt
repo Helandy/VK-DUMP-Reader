@@ -137,7 +137,6 @@ class VkApiArchiveParser @Inject constructor(
                     timestampEpoch = timestamp,
                     text = text,
                     isOutgoing = isOutgoing,
-                    isFavorite = false,
                 )
                 messageCount++
                 if (timestamp > lastMessageAt) lastMessageAt = timestamp

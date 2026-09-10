@@ -15,10 +15,12 @@ import com.etozhesandy.redpanda.core.storage.db.attachment.AttachmentDao
 import com.etozhesandy.redpanda.core.storage.db.attachment.toDomain
 import com.etozhesandy.redpanda.core.storage.db.dialog.DialogDao
 import com.etozhesandy.redpanda.core.storage.db.dialog.toDomain
+import com.etozhesandy.redpanda.core.storage.db.favorite.FavoriteMessageDao
 import com.etozhesandy.redpanda.core.storage.db.message.MessageDao
 import com.etozhesandy.redpanda.core.storage.db.message.toDomain
 import com.etozhesandy.redpanda.core.storage.db.profile.ProfileDao
 import com.etozhesandy.redpanda.core.storage.db.profile.toDomain
+import com.etozhesandy.redpanda.features.chat.data.paging.MessagePagingSource
 import com.etozhesandy.redpanda.features.chat.domain.repository.ChatRepository
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.map
 
 class ChatRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
+    private val favoriteMessageDao: FavoriteMessageDao,
     private val dialogDao: DialogDao,
     private val attachmentDao: AttachmentDao,
     private val profileDao: ProfileDao,
@@ -53,8 +56,7 @@ class ChatRepositoryImpl @Inject constructor(
             ),
             initialKey = initialPosition,
         ) {
-            if (isReversed) messageDao.pagingMessagesDescending(dialogId)
-            else messageDao.pagingMessagesAscending(dialogId)
+            MessagePagingSource(messageDao, dialogId, isReversed)
         }
             .flow
             .map { pagingData -> pagingData.map { it.toDomain() } }
@@ -96,7 +98,12 @@ class ChatRepositoryImpl @Inject constructor(
             .flowOn(defaultDispatcher)
 
     override suspend fun setFavorite(messageId: String, isFavorite: Boolean) =
-        messageDao.setFavorite(messageId, isFavorite)
+        if (isFavorite) favoriteMessageDao.add(messageId) else favoriteMessageDao.remove(messageId)
+
+    override fun observeFavoriteIds(dialogId: String): Flow<Set<String>> =
+        favoriteMessageDao.observeIdsForDialog(dialogId)
+            .map { ids -> ids.toSet() }
+            .flowOn(defaultDispatcher)
 
     override suspend fun getMessagePosition(dialogId: String, messageId: String, isReversed: Boolean): Int =
         if (isReversed) messageDao.getMessagePositionDescending(dialogId, messageId)

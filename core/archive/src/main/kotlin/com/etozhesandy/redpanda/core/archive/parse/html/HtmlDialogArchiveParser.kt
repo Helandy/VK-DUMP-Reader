@@ -136,7 +136,6 @@ class HtmlDialogArchiveParser(
                     timestampEpoch = raw.timestampEpoch,
                     text = raw.text,
                     isOutgoing = isOutgoing,
-                    isFavorite = false,
                 )
                 messageCount++
                 if (raw.timestampEpoch > lastMessageAt) lastMessageAt = raw.timestampEpoch

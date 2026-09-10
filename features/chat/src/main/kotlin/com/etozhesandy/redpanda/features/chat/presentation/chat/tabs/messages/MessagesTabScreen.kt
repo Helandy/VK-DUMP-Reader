@@ -24,6 +24,7 @@ import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsR
 
 @Composable
 fun MessagesTabScreen(
+    state: MessagesTabState.State,
     pagingItems: LazyPagingItems<MessageUi>,
     listState: LazyListState,
     onEvent: (MessagesTabState.Event) -> Unit,
@@ -37,12 +38,18 @@ fun MessagesTabScreen(
                 Icon(Icons.Default.SwapVert, contentDescription = stringResource(R.string.chat_action_reverse_order))
             }
         }
-        MessagesList(pagingItems = pagingItems, listState = listState, onEvent = onEvent)
+        MessagesList(
+            favoriteIds = state.favoriteIds,
+            pagingItems = pagingItems,
+            listState = listState,
+            onEvent = onEvent,
+        )
     }
 }
 
 @Composable
 private fun MessagesList(
+    favoriteIds: Set<String>,
     pagingItems: LazyPagingItems<MessageUi>,
     listState: LazyListState,
     onEvent: (MessagesTabState.Event) -> Unit,
@@ -58,11 +65,13 @@ private fun MessagesList(
             if (previous == null || !isSameDay(previous.timestampEpoch, message.timestampEpoch)) {
                 DateSeparator(date = formatMessageDate(message.timestampEpoch))
             }
+            val isFavorite = message.id in favoriteIds
             MessageBubble(
                 message = message,
                 attachments = item.attachments,
+                isFavorite = isFavorite,
                 onFavoriteToggle = {
-                    onEvent(MessagesTabState.Event.FavoriteToggled(message.id, !message.isFavorite))
+                    onEvent(MessagesTabState.Event.FavoriteToggled(message.id, !isFavorite))
                 },
                 // Only media belongs in the photo viewer; a document or a wall post opens
                 // where it actually lives, and metadata-only kinds have nowhere to go at all.

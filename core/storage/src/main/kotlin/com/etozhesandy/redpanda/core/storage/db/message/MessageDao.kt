@@ -1,6 +1,5 @@
 package com.etozhesandy.redpanda.core.storage.db.message
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -10,11 +9,32 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MessageDao {
 
-    @Query("SELECT * FROM messages WHERE dialogId = :dialogId ORDER BY timestampEpoch ASC, rowId ASC")
-    fun pagingMessagesAscending(dialogId: String): PagingSource<Int, MessageEntity>
+    /**
+     * One page of a dialog, read by offset rather than through a Room `PagingSource`: the generated
+     * one re-reads itself on every write to `messages`, and its refresh lands on the wrong rows
+     * when placeholders are off. See `MessagePagingSource` in the chat feature for what pages
+     * these.
+     */
+    @Query(
+        """
+        SELECT * FROM messages WHERE dialogId = :dialogId
+        ORDER BY timestampEpoch ASC, rowId ASC
+        LIMIT :limit OFFSET :offset
+        """,
+    )
+    suspend fun getMessagesPageAscending(dialogId: String, limit: Int, offset: Int): List<MessageEntity>
 
-    @Query("SELECT * FROM messages WHERE dialogId = :dialogId ORDER BY timestampEpoch DESC, rowId DESC")
-    fun pagingMessagesDescending(dialogId: String): PagingSource<Int, MessageEntity>
+    @Query(
+        """
+        SELECT * FROM messages WHERE dialogId = :dialogId
+        ORDER BY timestampEpoch DESC, rowId DESC
+        LIMIT :limit OFFSET :offset
+        """,
+    )
+    suspend fun getMessagesPageDescending(dialogId: String, limit: Int, offset: Int): List<MessageEntity>
+
+    @Query("SELECT COUNT(*) FROM messages WHERE dialogId = :dialogId")
+    suspend fun countMessages(dialogId: String): Int
 
     @Query(
         """
@@ -63,19 +83,13 @@ interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(messages: List<MessageEntity>)
 
-    @Query("UPDATE messages SET isFavorite = :isFavorite WHERE messageId = :messageId")
-    suspend fun setFavorite(messageId: String, isFavorite: Boolean)
-
-    @Query("SELECT * FROM messages WHERE profileId = :profileId AND isFavorite = 1 ORDER BY timestampEpoch DESC")
-    fun observeFavorites(profileId: String): Flow<List<MessageEntity>>
-
     @Query("SELECT * FROM messages WHERE messageId = :messageId")
     suspend fun getMessage(messageId: String): MessageEntity?
 
     /**
      * Ties on [MessageEntity.timestampEpoch] (VK timestamps are second-precision and common in
      * photo bursts) are broken by [MessageEntity.rowId], matching the tiebreak used by
-     * [pagingMessagesAscending]/[pagingMessagesDescending] — otherwise the offset this returns can
+     * [getMessagesPageAscending]/[getMessagesPageDescending] — otherwise the offset this returns can
      * point at a neighboring message instead of the requested one whenever ties exist.
      */
     @Query(

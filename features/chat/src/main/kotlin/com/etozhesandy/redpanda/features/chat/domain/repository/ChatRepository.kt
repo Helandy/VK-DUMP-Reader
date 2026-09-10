@@ -25,5 +25,6 @@ interface ChatRepository {
     fun observeAudioForDialog(dialogId: String): Flow<List<Attachment>>
     fun observeFilesForDialog(dialogId: String): Flow<List<Attachment>>
     suspend fun setFavorite(messageId: String, isFavorite: Boolean)
+    fun observeFavoriteIds(dialogId: String): Flow<Set<String>>
     suspend fun getMessagePosition(dialogId: String, messageId: String, isReversed: Boolean): Int
 }

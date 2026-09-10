@@ -12,7 +12,6 @@ fun MessageEntity.toDomain(): Message = Message(
     timestampEpoch = timestampEpoch,
     text = text,
     isOutgoing = isOutgoing,
-    isFavorite = isFavorite,
     hasAttachments = hasAttachments,
 )
 
@@ -25,7 +24,6 @@ fun Message.toEntity(): MessageEntity = MessageEntity(
     timestampEpoch = timestampEpoch,
     text = text,
     isOutgoing = isOutgoing,
-    isFavorite = isFavorite,
     hasAttachments = hasAttachments,
 )
 

@@ -12,6 +12,7 @@ import com.etozhesandy.redpanda.core.navigation.manager.PopUpTo
 import com.etozhesandy.redpanda.core.settings.SettingsRepository
 import com.etozhesandy.redpanda.features.chat.domain.usecase.GetAttachmentsForMessageUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.GetMessagePositionUseCase
+import com.etozhesandy.redpanda.features.chat.domain.usecase.ObserveFavoriteMessageIdsUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.ObserveMessagesUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.ToggleFavoriteUseCase
 import com.etozhesandy.redpanda.features.chat.mapper.toOrderOverride
@@ -29,7 +30,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -39,6 +42,7 @@ class MessagesTabViewModel @Inject constructor(
     private val getAttachments: GetAttachmentsForMessageUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase,
     observeMessages: ObserveMessagesUseCase,
+    observeFavoriteIds: ObserveFavoriteMessageIdsUseCase,
     getMessagePosition: GetMessagePositionUseCase,
     settingsRepository: SettingsRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -75,6 +79,9 @@ class MessagesTabViewModel @Inject constructor(
             val isReversed = reversed.await()
             setState { copy(isReversed = isReversed) }
         }
+        observeFavoriteIds(args.dialogId)
+            .onEach { ids -> setState { copy(favoriteIds = ids) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: MessagesTabState.Event) {

@@ -38,6 +38,7 @@ import com.etozhesandy.redpanda.features.chat.presentation.chat.utils.formatMess
 fun MessageBubble(
     message: Message,
     attachments: List<Attachment>,
+    isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
     modifier: Modifier = Modifier,
@@ -88,9 +89,9 @@ fun MessageBubble(
                     )
                     IconButton(onClick = onFavoriteToggle) {
                         Icon(
-                            imageVector = if (message.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            imageVector = if (isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
                             contentDescription = stringResource(R.string.chat_action_favorite),
-                            tint = if (message.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

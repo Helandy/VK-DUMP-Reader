@@ -12,7 +12,14 @@ import com.etozhesandy.redpanda.core.common.mvi.UiState
  */
 object MessagesTabState {
 
-    data class State(val isReversed: Boolean = false) : UiState
+    /**
+     * [favoriteIds] rather than a flag on each message: the messages arrive as `PagingData`, whose
+     * pages are read once and never re-read, so the stars have to be watched separately.
+     */
+    data class State(
+        val isReversed: Boolean = false,
+        val favoriteIds: Set<String> = emptySet(),
+    ) : UiState
 
     sealed interface Event : UiEvent {
         data class FavoriteToggled(val messageId: String, val isFavorite: Boolean) : Event

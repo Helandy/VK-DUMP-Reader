@@ -4,6 +4,7 @@ import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import com.etozhesandy.redpanda.core.common.files.ProfileDirectories
 import com.etozhesandy.redpanda.core.storage.db.attachment.AttachmentDao
 import com.etozhesandy.redpanda.core.storage.db.dialog.DialogDao
+import com.etozhesandy.redpanda.core.storage.db.favorite.FavoriteMessageDao
 import com.etozhesandy.redpanda.core.storage.db.friend.FriendDao
 import com.etozhesandy.redpanda.core.storage.db.group.GroupDao
 import com.etozhesandy.redpanda.core.storage.db.message.MessageDao
@@ -25,6 +26,7 @@ class ProfileEraser @Inject constructor(
     private val profileDao: ProfileDao,
     private val dialogDao: DialogDao,
     private val messageDao: MessageDao,
+    private val favoriteMessageDao: FavoriteMessageDao,
     private val attachmentDao: AttachmentDao,
     private val friendDao: FriendDao,
     private val groupDao: GroupDao,
@@ -35,6 +37,7 @@ class ProfileEraser @Inject constructor(
 
     suspend fun erase(profileId: String) {
         withContext(ioDispatcher) {
+            favoriteMessageDao.deleteForProfile(profileId)
             attachmentDao.deleteForProfile(profileId)
             messageDao.deleteForProfile(profileId)
             dialogDao.deleteForProfile(profileId)

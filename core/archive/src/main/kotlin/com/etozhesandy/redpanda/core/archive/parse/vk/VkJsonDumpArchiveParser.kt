@@ -162,7 +162,6 @@ class VkJsonDumpArchiveParser @Inject constructor(
                 timestampEpoch = timestamp,
                 text = extractMessageText(message, messagesById, nameById, ownerId, peerId, peerName),
                 isOutgoing = fromId == ownerId,
-                isFavorite = false,
             )
             messageCount++
             if (timestamp > lastMessageAt) lastMessageAt = timestamp

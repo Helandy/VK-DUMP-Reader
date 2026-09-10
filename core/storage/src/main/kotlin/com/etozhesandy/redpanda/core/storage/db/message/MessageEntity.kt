@@ -14,7 +14,6 @@ import androidx.room.PrimaryKey
     indices = [
         Index("dialogId"),
         Index("profileId"),
-        Index("isFavorite"),
         Index(value = ["messageId"], unique = true),
         Index(value = ["dialogId", "timestampEpoch"]),
     ],
@@ -29,6 +28,5 @@ data class MessageEntity(
     val timestampEpoch: Long,
     val text: String,
     val isOutgoing: Boolean,
-    val isFavorite: Boolean,
     val hasAttachments: Boolean = false,
 )

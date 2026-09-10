@@ -124,6 +124,7 @@ class SearchMessagesUseCaseTest {
         override fun observeAudioForDialog(dialogId: String): Flow<List<Attachment>> = unused()
         override fun observeFilesForDialog(dialogId: String): Flow<List<Attachment>> = unused()
         override suspend fun setFavorite(messageId: String, isFavorite: Boolean) = unused()
+        override fun observeFavoriteIds(dialogId: String): Flow<Set<String>> = unused()
         override suspend fun getMessagePosition(dialogId: String, messageId: String, isReversed: Boolean): Int =
             unused()
 

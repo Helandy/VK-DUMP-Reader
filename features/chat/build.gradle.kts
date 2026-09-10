@@ -49,7 +49,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
-    implementation(libs.androidx.room.paging)
 
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)

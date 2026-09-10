@@ -93,7 +93,9 @@ fun ChatScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun MessagesPage(listState: LazyListState) {
     val viewModel: MessagesTabViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     MessagesTabScreen(
+        state = state,
         pagingItems = viewModel.pagingMessages.collectAsLazyPagingItems(),
         listState = listState,
         onEvent = viewModel::onEvent,
