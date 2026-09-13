@@ -1,12 +1,14 @@
 package com.etozhesandy.redpanda.features.chat.presentation.chat.tabs.files
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -18,6 +20,7 @@ import com.etozhesandy.redpanda.core.designsystem.components.SortMenu
 import com.etozhesandy.redpanda.features.chat.R
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.FileListItem
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsHeight
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -45,26 +48,30 @@ fun FilesTabScreen(
     val listState = rememberLazyListState()
     ScrollToTopOnChange(state.sort to state.sortAscending) { listState.scrollToItem(0) }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        TabActionsRow {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (state.attachments.isEmpty()) {
+            EmptyState(text = stringResource(R.string.chat_empty_files))
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = TabActionsHeight),
+            ) {
+                items(state.attachments, key = { it.id }) { attachment ->
+                    FileListItem(
+                        attachment = attachment,
+                        onClick = { onEvent(FilesTabState.Event.FileClicked(attachment.path)) },
+                    )
+                }
+            }
+        }
+        TabActionsRow(modifier = Modifier.align(Alignment.TopEnd)) {
             SortMenu(
                 options = MEDIA_SORT_OPTIONS,
                 selected = state.sort,
                 ascending = state.sortAscending,
                 onSelect = { onEvent(FilesTabState.Event.SortSelected(it)) },
             )
-        }
-        if (state.attachments.isEmpty()) {
-            EmptyState(text = stringResource(R.string.chat_empty_files))
-            return@Column
-        }
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            items(state.attachments, key = { it.id }) { attachment ->
-                FileListItem(
-                    attachment = attachment,
-                    onClick = { onEvent(FilesTabState.Event.FileClicked(attachment.path)) },
-                )
-            }
         }
     }
 }

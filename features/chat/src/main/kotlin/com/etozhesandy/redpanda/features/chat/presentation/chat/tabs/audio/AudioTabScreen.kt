@@ -1,6 +1,7 @@
 package com.etozhesandy.redpanda.features.chat.presentation.chat.tabs.audio
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -24,6 +26,7 @@ import com.etozhesandy.redpanda.core.designsystem.components.SortMenu
 import com.etozhesandy.redpanda.features.chat.R
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.AudioListItem
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsHeight
 
 /** Owns its own player: audio is the only tab that plays anything, and it stops when it leaves. */
 @Composable
@@ -52,37 +55,41 @@ fun AudioTabScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        TabActionsRow {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (state.attachments.isEmpty()) {
+            EmptyState(text = stringResource(R.string.chat_empty_audio))
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = TabActionsHeight),
+            ) {
+                items(state.attachments, key = { it.id }) { attachment ->
+                    AudioListItem(
+                        attachment = attachment,
+                        isPlaying = playingId == attachment.id && isPlaying,
+                        onClick = {
+                            if (attachment.path.isBlank()) return@AudioListItem
+                            if (playingId == attachment.id) {
+                                if (player.isPlaying) player.pause() else player.play()
+                            } else {
+                                player.setMediaItem(MediaItem.fromUri(attachment.path))
+                                player.prepare()
+                                player.play()
+                                playingId = attachment.id
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        TabActionsRow(modifier = Modifier.align(Alignment.TopEnd)) {
             SortMenu(
                 options = MEDIA_SORT_OPTIONS,
                 selected = state.sort,
                 ascending = state.sortAscending,
                 onSelect = { onEvent(AudioTabState.Event.SortSelected(it)) },
             )
-        }
-        if (state.attachments.isEmpty()) {
-            EmptyState(text = stringResource(R.string.chat_empty_audio))
-            return@Column
-        }
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            items(state.attachments, key = { it.id }) { attachment ->
-                AudioListItem(
-                    attachment = attachment,
-                    isPlaying = playingId == attachment.id && isPlaying,
-                    onClick = {
-                        if (attachment.path.isBlank()) return@AudioListItem
-                        if (playingId == attachment.id) {
-                            if (player.isPlaying) player.pause() else player.play()
-                        } else {
-                            player.setMediaItem(MediaItem.fromUri(attachment.path))
-                            player.prepare()
-                            player.play()
-                            playingId = attachment.id
-                        }
-                    },
-                )
-            }
         }
     }
 }

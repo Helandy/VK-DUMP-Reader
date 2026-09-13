@@ -1,6 +1,7 @@
 package com.etozhesandy.redpanda.features.chat.presentation.chat.tabs.messages
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.LazyPagingItems
@@ -21,6 +23,7 @@ import com.etozhesandy.redpanda.features.chat.presentation.chat.utils.isSameDay
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.DateSeparator
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.MessageBubble
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsHeight
 
 @Composable
 fun MessagesTabScreen(
@@ -30,20 +33,21 @@ fun MessagesTabScreen(
     onEvent: (MessagesTabState.Event) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        TabActionsRow {
+    Box(modifier = modifier.fillMaxSize()) {
+        MessagesList(
+            favoriteIds = state.favoriteIds,
+            pagingItems = pagingItems,
+            listState = listState,
+            onEvent = onEvent,
+            contentPadding = PaddingValues(top = TabActionsHeight),
+        )
+        TabActionsRow(modifier = Modifier.align(Alignment.TopEnd)) {
             // Flipping the order re-anchors paging instead of reordering a loaded list, so this
             // is a toggle rather than one of the sort menus the other tabs draw here.
             IconButton(onClick = { onEvent(MessagesTabState.Event.ToggleOrderReversed) }) {
                 Icon(Icons.Default.SwapVert, contentDescription = stringResource(R.string.chat_action_reverse_order))
             }
         }
-        MessagesList(
-            favoriteIds = state.favoriteIds,
-            pagingItems = pagingItems,
-            listState = listState,
-            onEvent = onEvent,
-        )
     }
 }
 
@@ -53,8 +57,13 @@ private fun MessagesList(
     pagingItems: LazyPagingItems<MessageUi>,
     listState: LazyListState,
     onEvent: (MessagesTabState.Event) -> Unit,
+    contentPadding: PaddingValues,
 ) {
-    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = contentPadding,
+    ) {
         items(
             count = pagingItems.itemCount,
             key = pagingItems.itemKey { it.message.id },

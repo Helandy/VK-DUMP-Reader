@@ -34,13 +34,14 @@ fun <T> MediaGrid(
     imageWidthDp: Int,
     modifier: Modifier = Modifier,
     state: LazyGridState = rememberLazyGridState(),
+    contentPadding: PaddingValues = PaddingValues(4.dp),
     tile: @Composable LazyGridItemScope.(T, Modifier) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = imageWidthDp.dp),
         state = state,
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(4.dp),
+        contentPadding = contentPadding,
     ) {
         items(items, key = key) { item -> tile(item, MediaGridTileModifier) }
     }
@@ -54,6 +55,7 @@ fun MediaGrid(
     onAttachmentClick: (Attachment) -> Unit,
     modifier: Modifier = Modifier,
     state: LazyGridState = rememberLazyGridState(),
+    contentPadding: PaddingValues = PaddingValues(4.dp),
 ) {
     MediaGrid(
         items = attachments,
@@ -61,6 +63,7 @@ fun MediaGrid(
         imageWidthDp = imageWidthDp,
         modifier = modifier,
         state = state,
+        contentPadding = contentPadding,
     ) { attachment, tileModifier ->
         AttachmentThumbnail(
             attachment = attachment,
