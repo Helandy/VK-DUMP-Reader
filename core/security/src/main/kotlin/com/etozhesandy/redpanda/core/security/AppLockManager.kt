@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 /**
- * Single source of truth for whether the app is currently locked. Locks on a cold start and again
- * when the app returns from the background after more than the configured timeout.
+ * Single source of truth for whether the app is currently locked. It locks on a cold start and,
+ * when configured, again after the app returns from the background past its timeout.
  */
 @Singleton
 class AppLockManager @Inject constructor(
@@ -93,6 +93,7 @@ class AppLockManager @Inject constructor(
 
     private fun relockIfTimedOut() {
         if (!config.enabled || _state.value != LockState.Unlocked) return
+        if (config.timeoutSeconds == AppLockConfig.TIMEOUT_NEVER_SECONDS) return
         val awayMs = SystemClock.elapsedRealtime() - backgroundedAtMs
         if (awayMs >= config.timeoutSeconds * MILLIS_PER_SECOND) _state.value = LockState.Locked
     }

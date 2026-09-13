@@ -17,9 +17,13 @@ class ChatTopBarViewModel @Inject constructor(
     private val nav: INavigationManager,
     private val args: ChatArgs,
     observeDialog: ObserveDialogUseCase,
+    tabStateCache: ChatTabStateCache,
 ) : BaseViewModel<ChatTopBarState.State, ChatTopBarState.Event, ChatTopBarState.Effect>() {
 
     override fun createInitialState() = ChatTopBarState.State()
+
+    /** Read once by the chat screen, then continuously updated by its pager and message list. */
+    val tabSlot: ChatTabSlot = tabStateCache.slot(args.dialogId)
 
     init {
         observeDialog(args.dialogId)

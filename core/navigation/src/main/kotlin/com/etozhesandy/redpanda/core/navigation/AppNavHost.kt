@@ -1,7 +1,9 @@
 package com.etozhesandy.redpanda.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.etozhesandy.redpanda.core.navigation.manager.NavCommand
@@ -12,7 +14,14 @@ fun AppNavHost(
     navController: NavHostController,
     navManager: NavigationManager,
     registrars: Set<NavRegistrar>,
+    navStateCache: NavStateCache,
 ) {
+    // NavController can apply restored state only while its graph is first being installed.
+    remember(navController) { navStateCache.consume()?.let(navController::restoreState) }
+    DisposableEffect(navController) {
+        onDispose { navStateCache.save(navController.saveState()) }
+    }
+
     // The one place the queued requests meet the back stack; everywhere else navigation is asked
     // for through INavigationManager.
     LaunchedEffect(navController) {

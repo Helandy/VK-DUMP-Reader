@@ -17,10 +17,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.etozhesandy.redpanda.core.security.model.AppLockConfig
 import com.etozhesandy.redpanda.core.security.model.BiometricAvailability
 import com.etozhesandy.redpanda.features.settings.R
 import com.etozhesandy.redpanda.features.settings.presentation.SettingsState
+import com.etozhesandy.redpanda.features.settings.presentation.utils.LOCK_TIMEOUT_NEVER_INDEX
+import com.etozhesandy.redpanda.features.settings.presentation.utils.lockTimeoutIndexOf
+import com.etozhesandy.redpanda.features.settings.presentation.utils.lockTimeoutSecondsFor
 
 /**
  * The login-protection block of the settings screen. The fingerprint and timeout rows only appear
@@ -107,27 +109,31 @@ private fun LockTimeoutSlider(
     onEvent: (SettingsState.Event) -> Unit,
 ) {
     var sliderValue by remember(state.lockTimeoutSeconds) {
-        mutableFloatStateOf(state.lockTimeoutSeconds.toFloat())
+        mutableFloatStateOf(lockTimeoutIndexOf(state.lockTimeoutSeconds).toFloat())
     }
     ListItem(
         headlineContent = { Text(stringResource(R.string.settings_lock_timeout)) },
         supportingContent = {
             Text(
-                if (sliderValue.toInt() == 0) {
-                    stringResource(R.string.settings_lock_timeout_immediately)
-                } else {
-                    stringResource(R.string.value_seconds, sliderValue.toInt())
-                },
+                when (sliderValue.toInt()) {
+                    LOCK_TIMEOUT_NEVER_INDEX -> stringResource(R.string.settings_lock_timeout_never)
+                    0 -> stringResource(R.string.settings_lock_timeout_immediately)
+                    else -> stringResource(
+                        R.string.value_seconds,
+                        lockTimeoutSecondsFor(sliderValue.toInt()),
+                    )
+                }
             )
         },
     )
     Slider(
         value = sliderValue,
         onValueChange = { sliderValue = it },
-        onValueChangeFinished = { onEvent(SettingsState.Event.LockTimeoutChanged(sliderValue.toInt())) },
-        valueRange = AppLockConfig.TIMEOUT_MIN_SECONDS.toFloat()..AppLockConfig.TIMEOUT_MAX_SECONDS.toFloat(),
-        steps = (AppLockConfig.TIMEOUT_MAX_SECONDS - AppLockConfig.TIMEOUT_MIN_SECONDS) /
-            AppLockConfig.TIMEOUT_STEP_SECONDS - 1,
+        onValueChangeFinished = {
+            onEvent(SettingsState.Event.LockTimeoutChanged(lockTimeoutSecondsFor(sliderValue.toInt())))
+        },
+        valueRange = 0f..LOCK_TIMEOUT_NEVER_INDEX.toFloat(),
+        steps = LOCK_TIMEOUT_NEVER_INDEX - 1,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
     )
 }

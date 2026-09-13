@@ -14,6 +14,9 @@ data class AppLockConfig(
         const val TIMEOUT_MAX_SECONDS = 300
         const val TIMEOUT_STEP_SECONDS = 15
 
+        /** Value of [timeoutSeconds] that locks only when the app starts cold. */
+        const val TIMEOUT_NEVER_SECONDS = Int.MAX_VALUE
+
         const val PIN_LENGTH = 4
 
         /** Failed fingerprint touches after which the lock screen falls back to the PIN pad. */

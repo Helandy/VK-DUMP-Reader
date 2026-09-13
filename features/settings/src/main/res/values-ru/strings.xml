@@ -28,6 +28,7 @@
     <string name="settings_biometric_not_enrolled">Сначала добавьте отпечаток в настройках системы</string>
     <string name="settings_lock_timeout">Блокировать после сворачивания</string>
     <string name="settings_lock_timeout_immediately">Сразу</string>
+    <string name="settings_lock_timeout_never">Никогда — только при запуске</string>
     <string name="value_seconds">%1$d с</string>
 
     <string name="sort_default_summary">%1$s, %2$s</string>

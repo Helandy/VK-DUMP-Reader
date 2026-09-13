@@ -3,9 +3,7 @@ package com.etozhesandy.redpanda.features.chat.presentation.chat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -49,16 +47,17 @@ private val TAB_TITLES = listOf(
  */
 @Composable
 fun ChatScreen(modifier: Modifier = Modifier) {
-    val pagerState = rememberPagerState(pageCount = { TAB_TITLES.size })
-    val coroutineScope = rememberCoroutineScope()
-
-    // Hoisted out of the pager: the media grids can restore themselves from the scroll cache,
-    // but the messages list has no such backstop, so its position is kept where the pager can't
-    // dispose it.
-    val messagesListState = rememberLazyListState()
-
     val topBarViewModel: ChatTopBarViewModel = hiltViewModel()
     val topBarState by topBarViewModel.state.collectAsStateWithLifecycle()
+    val pagerState = rememberCachedPagerState(
+        slot = topBarViewModel.tabSlot,
+        pageCount = { TAB_TITLES.size },
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    // Hoisted out of the pager so its state survives page disposal; the slot also survives the
+    // screen being rebuilt after the lock gate removes the navigation composition.
+    val messagesListState = rememberCachedMessagesListState(topBarViewModel.tabSlot)
 
     BaseScreen(
         topBar = { ChatTopBar(state = topBarState, onEvent = topBarViewModel::onEvent) },

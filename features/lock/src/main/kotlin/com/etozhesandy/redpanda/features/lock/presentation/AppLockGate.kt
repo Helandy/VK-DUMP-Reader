@@ -16,8 +16,9 @@ import com.etozhesandy.redpanda.features.lock.presentation.utils.findActivity
 
 /**
  * Wraps the app content and replaces it with the lock screen whenever the app is locked. It sits
- * above the nav host rather than inside it, so the back stack is untouched by locking and there is
- * no destination a deep link could use to skip the gate.
+ * above the nav host, so no destination or deep link can skip the gate. Locking removes the
+ * content composition; [com.etozhesandy.redpanda.core.navigation.NavStateCache] restores its back
+ * stack after unlock.
  */
 @Composable
 fun AppLockGate(content: @Composable () -> Unit) {

@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.etozhesandy.redpanda.core.designsystem.theme.RedPandaTheme
 import com.etozhesandy.redpanda.core.navigation.AppNavHost
 import com.etozhesandy.redpanda.core.navigation.NavRegistrar
+import com.etozhesandy.redpanda.core.navigation.NavStateCache
 import com.etozhesandy.redpanda.core.navigation.manager.NavigationManager
 import com.etozhesandy.redpanda.features.lock.presentation.AppLockGate
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var navigationManager: NavigationManager
 
+    @Inject
+    lateinit var navStateCache: NavStateCache
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -37,6 +41,7 @@ class MainActivity : AppCompatActivity() {
                             navController = navController,
                             navManager = navigationManager,
                             registrars = navRegistrars,
+                            navStateCache = navStateCache,
                         )
                     }
                 }

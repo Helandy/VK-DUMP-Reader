@@ -28,6 +28,7 @@
     <string name="settings_biometric_not_enrolled">Add a fingerprint in the system settings first</string>
     <string name="settings_lock_timeout">Lock after being in the background</string>
     <string name="settings_lock_timeout_immediately">Immediately</string>
+    <string name="settings_lock_timeout_never">Never — only on launch</string>
     <string name="value_seconds">%1$d s</string>
 
     <!-- The stored default spelled out: sort key first, then its direction. -->
