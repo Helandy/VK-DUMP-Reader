@@ -1,5 +1,7 @@
 package com.etozhesandy.redpanda.features.chat.presentation.chat
 
+import com.etozhesandy.redpanda.core.common.mvi.SortMemory
+import com.etozhesandy.redpanda.core.model.MediaSort
 import com.etozhesandy.redpanda.features.chat.model.ChatMediaTab
 import com.etozhesandy.redpanda.features.chat.model.MediaScrollPosition
 import javax.inject.Inject
@@ -12,7 +14,7 @@ interface MediaScrollSlot {
 }
 
 /**
- * Хранит позиции скрола медиа-табов поверх пересоздания экрана чата.
+ * Хранит позиции скрола и выбранную сортировку медиа-табов поверх пересоздания экрана чата.
  *
  * Переход к сообщению из просмотрщика фото и из поиска делает
  * `nav.navigate(Routes.Chat(...), PopUpTo(Routes.Chat::class, inclusive = true))`, то есть старая
@@ -20,16 +22,16 @@ interface MediaScrollSlot {
  * привязанными к ней ViewModel. Поэтому ни `rememberSaveable`, ни `SavedStateHandle` такой переход
  * пережить не могут, и позицию нужно держать снаружи навигации.
  *
- * Наружу отдаётся [MediaScrollSlot], а не весь кэш: таб знает только свою ячейку и не может
- * прочитать чужую.
+ * Наружу для каждой пары диалог/таб отдаётся только её [MediaScrollSlot] и [SortMemory].
  */
 @Singleton
 class ChatMediaScrollCache @Inject constructor() {
 
     private val positions = mutableMapOf<String, MediaScrollPosition>()
+    private val sorts = mutableMapOf<String, Pair<MediaSort, Boolean>>()
 
     fun slot(dialogId: String, tab: ChatMediaTab): MediaScrollSlot {
-        val key = "$dialogId:${tab.name}"
+        val key = cacheKey(dialogId, tab)
         return object : MediaScrollSlot {
             override fun read(): MediaScrollPosition = positions[key] ?: MediaScrollPosition()
 
@@ -38,4 +40,17 @@ class ChatMediaScrollCache @Inject constructor() {
             }
         }
     }
+
+    fun sortMemory(dialogId: String, tab: ChatMediaTab): SortMemory<MediaSort> {
+        val key = cacheKey(dialogId, tab)
+        return object : SortMemory<MediaSort> {
+            override fun read(): Pair<MediaSort, Boolean>? = sorts[key]
+
+            override fun write(sort: MediaSort, ascending: Boolean) {
+                sorts[key] = sort to ascending
+            }
+        }
+    }
+
+    private fun cacheKey(dialogId: String, tab: ChatMediaTab): String = "$dialogId:${tab.name}"
 }

@@ -107,6 +107,7 @@ private fun PhotosPage() {
     val state by viewModel.state.collectAsStateWithLifecycle()
     MediaTabScreen(
         state = state,
+        effect = viewModel.effect,
         scrollSlot = viewModel.scrollSlot,
         emptyText = stringResource(R.string.chat_empty_photos),
         onEvent = viewModel::onEvent,
@@ -119,6 +120,7 @@ private fun VideosPage() {
     val state by viewModel.state.collectAsStateWithLifecycle()
     MediaTabScreen(
         state = state,
+        effect = viewModel.effect,
         scrollSlot = viewModel.scrollSlot,
         emptyText = stringResource(R.string.chat_empty_videos),
         onEvent = viewModel::onEvent,

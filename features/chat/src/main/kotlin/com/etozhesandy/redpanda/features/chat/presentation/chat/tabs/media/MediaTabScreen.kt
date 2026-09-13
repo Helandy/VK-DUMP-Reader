@@ -3,26 +3,35 @@ package com.etozhesandy.redpanda.features.chat.presentation.chat.tabs.media
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.etozhesandy.redpanda.core.designsystem.components.EmptyState
 import com.etozhesandy.redpanda.core.designsystem.components.MEDIA_SORT_OPTIONS
-import com.etozhesandy.redpanda.core.designsystem.components.ScrollToTopOnChange
 import com.etozhesandy.redpanda.core.designsystem.components.SortMenu
 import com.etozhesandy.redpanda.core.designsystem.media.MediaGrid
 import com.etozhesandy.redpanda.features.chat.presentation.chat.MediaScrollSlot
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 
 /** The grid shared by «Фото» and «Видео» — [emptyText] is all that differs between them. */
 @Composable
 fun MediaTabScreen(
     state: MediaTabState.State,
+    effect: Flow<MediaTabState.Effect>,
     scrollSlot: MediaScrollSlot,
     emptyText: String,
     onEvent: (MediaTabState.Event) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val gridState = rememberCachedGridState(scrollSlot)
-    ScrollToTopOnChange(state.sort to state.sortAscending) { gridState.scrollToItem(0) }
+    LaunchedEffect(Unit) {
+        effect.collectLatest { current ->
+            when (current) {
+                MediaTabState.Effect.ScrollToTop -> gridState.scrollToItem(0)
+            }
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         TabActionsRow {

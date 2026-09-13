@@ -24,5 +24,7 @@ object MediaTabState {
         data class SortSelected(val sort: MediaSort) : Event
     }
 
-    sealed interface Effect : UiEffect
+    sealed interface Effect : UiEffect {
+        data object ScrollToTop : Effect
+    }
 }

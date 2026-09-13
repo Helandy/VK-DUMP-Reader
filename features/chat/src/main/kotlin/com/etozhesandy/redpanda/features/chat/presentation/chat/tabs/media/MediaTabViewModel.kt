@@ -49,6 +49,7 @@ abstract class MediaTabViewModel(
         keyPrefix = "media",
         defaults = settingsRepository.settings.map { it.defaultMediaSort to it.defaultMediaSortAscending },
         naturalAscending = { it.naturalAscending },
+        memory = scrollCache.sortMemory(args.dialogId, tab),
     )
 
     init {
@@ -76,6 +77,7 @@ abstract class MediaTabViewModel(
                     currentAscending = currentState.sortAscending,
                 )
                 setState { copy(sort = event.sort, sortAscending = ascending) }
+                setEffect { MediaTabState.Effect.ScrollToTop }
             }
         }
     }

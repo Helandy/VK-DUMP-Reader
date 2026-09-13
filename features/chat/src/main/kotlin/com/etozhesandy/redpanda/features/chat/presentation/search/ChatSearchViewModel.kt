@@ -35,6 +35,7 @@ class ChatSearchViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nav: INavigationManager,
     private val args: ChatSearchArgs,
+    private val cache: ChatSearchCache,
     searchMessages: SearchMessagesUseCase,
     settingsRepository: SettingsRepository,
     @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
@@ -42,11 +43,14 @@ class ChatSearchViewModel @Inject constructor(
 
     override fun createInitialState() = ChatSearchState.State(query = rawQuery.value)
 
-    private val rawQuery = MutableStateFlow(savedStateHandle.get<String>(KEY_QUERY).orEmpty())
+    private val rawQuery = MutableStateFlow(
+        savedStateHandle.get<String>(KEY_QUERY) ?: cache.query(args.dialogId).orEmpty(),
+    )
     private val sort = savedStateHandle.sortPreference<MessageSort>(
         keyPrefix = "search",
         defaults = settingsRepository.settings.map { it.defaultSearchSort to it.defaultSearchSortAscending },
         naturalAscending = { it.naturalAscending },
+        memory = cache.sortMemory(args.dialogId),
     )
 
     init {
@@ -69,6 +73,7 @@ class ChatSearchViewModel @Inject constructor(
         when (event) {
             is ChatSearchState.Event.QueryChanged -> {
                 savedStateHandle[KEY_QUERY] = event.query
+                cache.setQuery(args.dialogId, event.query)
                 setState { copy(query = event.query) }
                 rawQuery.value = event.query
             }

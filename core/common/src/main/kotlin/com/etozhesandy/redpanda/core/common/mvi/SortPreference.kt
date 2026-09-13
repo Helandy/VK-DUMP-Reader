@@ -6,13 +6,20 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
+/** Optional process-lifetime storage for a screen's explicit sort selection. */
+interface SortMemory<T> {
+    fun read(): Pair<T, Boolean>?
+    fun write(sort: T, ascending: Boolean)
+}
+
 /**
  * A sort key plus its direction, picked on one screen on top of an app-wide default.
  *
  * Nothing is chosen until the user picks something: until then [flow] follows [defaults], so a
  * change to the setting still reaches a screen that is already open. A pick is deliberately
  * one-off — it lives in the [SavedStateHandle] for the screen's lifetime and never rewrites the
- * default.
+ * default. A caller may additionally provide [SortMemory] to retain that explicit choice for the
+ * app process lifetime.
  */
 class SortPreference<T : Enum<T>> @PublishedApi internal constructor(
     private val savedStateHandle: SavedStateHandle,
@@ -22,6 +29,7 @@ class SortPreference<T : Enum<T>> @PublishedApi internal constructor(
     defaults: Flow<Pair<T, Boolean>>,
     restoredSort: T?,
     restoredAscending: Boolean?,
+    private val memory: SortMemory<T>?,
 ) {
 
     private val sortOverride = MutableStateFlow(restoredSort)
@@ -45,6 +53,7 @@ class SortPreference<T : Enum<T>> @PublishedApi internal constructor(
         )
         savedStateHandle.putEnum(sortKey, picked)
         savedStateHandle[ascendingKey] = ascending
+        memory?.write(picked, ascending)
         sortOverride.value = picked
         ascendingOverride.value = ascending
         return ascending
@@ -62,16 +71,22 @@ inline fun <reified T : Enum<T>> SavedStateHandle.sortPreference(
     keyPrefix: String,
     defaults: Flow<Pair<T, Boolean>>,
     noinline naturalAscending: (T) -> Boolean,
+    memory: SortMemory<T>? = null,
 ): SortPreference<T> {
     val sortKey = "${keyPrefix}_sort"
     val ascendingKey = "${keyPrefix}_sort_ascending"
+    val restoredFromHandle = getEnum<T>(sortKey)?.let { sort ->
+        get<Boolean>(ascendingKey)?.let { ascending -> sort to ascending }
+    }
+    val (restoredSort, restoredAscending) = restoredFromHandle ?: memory?.read() ?: (null to null)
     return SortPreference(
         savedStateHandle = this,
         sortKey = sortKey,
         ascendingKey = ascendingKey,
         naturalAscending = naturalAscending,
         defaults = defaults,
-        restoredSort = getEnum<T>(sortKey),
-        restoredAscending = get<Boolean>(ascendingKey),
+        restoredSort = restoredSort,
+        restoredAscending = restoredAscending,
+        memory = memory,
     )
 }
