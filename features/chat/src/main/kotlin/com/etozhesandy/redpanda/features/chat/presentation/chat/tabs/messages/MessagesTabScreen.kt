@@ -9,6 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.first
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +39,19 @@ fun MessagesTabScreen(
     listState: LazyListState,
     onEvent: (MessagesTabState.Event) -> Unit,
     modifier: Modifier = Modifier,
+    targetMessageId: String? = null,
 ) {
+    // A database paging anchor is not a LazyColumn index: refresh may load earlier rows,
+    // and prepends can shift the target. Locate the actual message in the loaded snapshot.
+    var targetReached by rememberSaveable(targetMessageId) { mutableStateOf(false) }
+    LaunchedEffect(targetMessageId, pagingItems, listState) {
+        if (targetMessageId == null || targetReached) return@LaunchedEffect
+        val index = snapshotFlow {
+            pagingItems.itemSnapshotList.items.indexOfFirst { it.message.id == targetMessageId }
+        }.first { it >= 0 }
+        listState.scrollToItem(index)
+        targetReached = true
+    }
     Box(modifier = modifier.fillMaxSize()) {
         MessagesList(
             favoriteIds = state.favoriteIds,

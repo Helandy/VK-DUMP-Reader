@@ -12,9 +12,13 @@ import com.etozhesandy.redpanda.features.chat.model.MediaScrollPosition
 
 /** Creates a pager that resumes at the tab stored in [slot] and writes selection changes back. */
 @Composable
-fun rememberCachedPagerState(slot: ChatTabSlot, pageCount: () -> Int): PagerState {
+fun rememberCachedPagerState(
+    slot: ChatTabSlot,
+    pageCount: () -> Int,
+    initialPage: Int = slot.readTab(),
+): PagerState {
     val pagerState = rememberSaveable(saver = pagerStateSaver(pageCount)) {
-        PagerState(currentPage = slot.readTab().coerceIn(0, pageCount() - 1), pageCount = pageCount)
+        PagerState(currentPage = initialPage.coerceIn(0, pageCount() - 1), pageCount = pageCount)
     }
     LaunchedEffect(pagerState, slot) {
         snapshotFlow { pagerState.currentPage }.collect(slot::writeTab)
@@ -35,9 +39,12 @@ private fun pagerStateSaver(pageCount: () -> Int): Saver<PagerState, Any> = list
 
 /** Creates a messages-list state that resumes at the position stored in [slot]. */
 @Composable
-fun rememberCachedMessagesListState(slot: ChatTabSlot): LazyListState {
+fun rememberCachedMessagesListState(
+    slot: ChatTabSlot,
+    restoreCachedPosition: Boolean = true,
+): LazyListState {
     val listState = rememberSaveable(saver = LazyListState.Saver) {
-        val restored = slot.readMessagesPosition()
+        val restored = if (restoreCachedPosition) slot.readMessagesPosition() else MediaScrollPosition()
         LazyListState(restored.index, restored.offset)
     }
     LaunchedEffect(listState, slot) {

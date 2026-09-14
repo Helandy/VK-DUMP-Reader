@@ -25,6 +25,8 @@ class ChatTopBarViewModel @Inject constructor(
     /** Read once by the chat screen, then continuously updated by its pager and message list. */
     val tabSlot: ChatTabSlot = tabStateCache.slot(args.dialogId)
 
+    val targetMessageId: String? = args.scrollToMessageId
+
     init {
         observeDialog(args.dialogId)
             .onEach { dialog -> setState { copy(dialog = dialog) } }

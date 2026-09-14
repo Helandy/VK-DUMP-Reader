@@ -52,12 +52,16 @@ fun ChatScreen(modifier: Modifier = Modifier) {
     val pagerState = rememberCachedPagerState(
         slot = topBarViewModel.tabSlot,
         pageCount = { TAB_TITLES.size },
+        initialPage = if (topBarViewModel.targetMessageId != null) 0 else topBarViewModel.tabSlot.readTab(),
     )
     val coroutineScope = rememberCoroutineScope()
 
     // Hoisted out of the pager so its state survives page disposal; the slot also survives the
     // screen being rebuilt after the lock gate removes the navigation composition.
-    val messagesListState = rememberCachedMessagesListState(topBarViewModel.tabSlot)
+    val messagesListState = rememberCachedMessagesListState(
+        slot = topBarViewModel.tabSlot,
+        restoreCachedPosition = topBarViewModel.targetMessageId == null,
+    )
 
     BaseScreen(
         topBar = { ChatTopBar(state = topBarState, onEvent = topBarViewModel::onEvent) },
@@ -78,7 +82,10 @@ fun ChatScreen(modifier: Modifier = Modifier) {
             }
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                 when (page) {
-                    0 -> MessagesPage(listState = messagesListState)
+                    0 -> MessagesPage(
+                        listState = messagesListState,
+                        targetMessageId = topBarViewModel.targetMessageId,
+                    )
                     1 -> PhotosPage()
                     2 -> VideosPage()
                     3 -> AudioPage()
@@ -90,13 +97,14 @@ fun ChatScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MessagesPage(listState: LazyListState) {
+private fun MessagesPage(listState: LazyListState, targetMessageId: String?) {
     val viewModel: MessagesTabViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     MessagesTabScreen(
         state = state,
         pagingItems = viewModel.pagingMessages.collectAsLazyPagingItems(),
         listState = listState,
+        targetMessageId = targetMessageId,
         onEvent = viewModel::onEvent,
     )
 }
