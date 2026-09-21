@@ -60,6 +60,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     // Runs the FTS query the search use case builds against a real SQLite FTS5 table.
     testImplementation(libs.sqlite.jdbc)
 }

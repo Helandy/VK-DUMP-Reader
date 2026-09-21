@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class ChatRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
@@ -67,10 +68,15 @@ class ChatRepositoryImpl @Inject constructor(
             .map { entities -> entities.map { it.toDomain() } }
             .flowOn(defaultDispatcher)
 
-    override fun searchAllDialogs(profileId: String, ftsQuery: String): Flow<List<DialogMessage>> =
-        messageDao.searchAllDialogs(profileId, ftsQuery)
-            .map { rows -> rows.map { it.toDomain() } }
-            .flowOn(defaultDispatcher)
+    override suspend fun searchAllDialogs(
+        profileId: String,
+        ftsQuery: String,
+        limit: Int,
+        offset: Int,
+    ): List<DialogMessage> = withContext(defaultDispatcher) {
+        messageDao.searchAllDialogs(profileId, ftsQuery, limit, offset)
+            .map { it.toDomain() }
+    }
 
     override suspend fun getAttachmentsForMessage(messageId: String): List<Attachment> =
         attachmentDao.getAttachmentsForMessage(messageId).map { it.toDomain() }

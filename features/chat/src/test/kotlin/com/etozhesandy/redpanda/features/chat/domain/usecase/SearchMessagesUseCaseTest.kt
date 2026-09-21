@@ -105,9 +105,14 @@ class SearchMessagesUseCaseTest {
             return flowOf(emptyList())
         }
 
-        override fun searchAllDialogs(profileId: String, ftsQuery: String): Flow<List<DialogMessage>> {
+        override suspend fun searchAllDialogs(
+            profileId: String,
+            ftsQuery: String,
+            limit: Int,
+            offset: Int,
+        ): List<DialogMessage> {
             lastQuery = ftsQuery
-            return flowOf(emptyList())
+            return emptyList()
         }
 
         override fun observeDialog(dialogId: String): Flow<ChatDialog?> = unused()

@@ -4,8 +4,6 @@ import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.features.chat.domain.repository.ChatRepository
 import com.etozhesandy.redpanda.features.chat.utils.asPrefixQuery
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 
 /**
  * Full-text searches the messages of every dialog of one profile, each result carrying the name of
@@ -15,9 +13,14 @@ import kotlinx.coroutines.flow.flowOf
 class SearchAllDialogsUseCase @Inject constructor(
     private val repository: ChatRepository,
 ) {
-    operator fun invoke(profileId: String, rawQuery: String): Flow<List<DialogMessage>> {
+    suspend operator fun invoke(
+        profileId: String,
+        rawQuery: String,
+        limit: Int,
+        offset: Int,
+    ): List<DialogMessage> {
         val ftsQuery = rawQuery.asPrefixQuery()
-        if (ftsQuery.isBlank()) return flowOf(emptyList())
-        return repository.searchAllDialogs(profileId, ftsQuery)
+        if (ftsQuery.isBlank()) return emptyList()
+        return repository.searchAllDialogs(profileId, ftsQuery, limit, offset)
     }
 }

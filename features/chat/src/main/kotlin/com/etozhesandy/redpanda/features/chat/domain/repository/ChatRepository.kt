@@ -17,7 +17,12 @@ interface ChatRepository {
         initialPosition: Int?,
     ): Flow<PagingData<Message>>
     fun searchMessages(profileId: String, ftsQuery: String, dialogId: String?): Flow<List<Message>>
-    fun searchAllDialogs(profileId: String, ftsQuery: String): Flow<List<DialogMessage>>
+    suspend fun searchAllDialogs(
+        profileId: String,
+        ftsQuery: String,
+        limit: Int,
+        offset: Int,
+    ): List<DialogMessage>
     suspend fun getAttachmentsForMessage(messageId: String): List<Attachment>
     fun observeMediaForDialog(dialogId: String): Flow<List<Attachment>>
     fun observePhotosForDialog(dialogId: String): Flow<List<Attachment>>

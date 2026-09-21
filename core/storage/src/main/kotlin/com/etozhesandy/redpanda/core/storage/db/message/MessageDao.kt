@@ -66,18 +66,21 @@ interface MessageDao {
         JOIN dialogs ON dialogs.id = messages.dialogId
         WHERE messages.profileId = :profileId
         AND messages_fts MATCH :ftsQuery
-        ORDER BY messages.timestampEpoch DESC
+        ORDER BY messages.timestampEpoch DESC, messages.rowId DESC
         LIMIT :limit
+        OFFSET :offset
         """,
     )
-    fun searchAllDialogs(
+    suspend fun searchAllDialogs(
         profileId: String,
         ftsQuery: String,
-        limit: Int = SEARCH_RESULT_LIMIT,
-    ): Flow<List<MessageWithDialogEntity>>
+        limit: Int = GLOBAL_SEARCH_PAGE_SIZE,
+        offset: Int = 0,
+    ): List<MessageWithDialogEntity>
 
     companion object {
         const val SEARCH_RESULT_LIMIT = 200
+        const val GLOBAL_SEARCH_PAGE_SIZE = 50
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

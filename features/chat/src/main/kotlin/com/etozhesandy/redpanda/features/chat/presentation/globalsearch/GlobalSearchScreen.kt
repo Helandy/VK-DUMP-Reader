@@ -3,14 +3,20 @@ package com.etozhesandy.redpanda.features.chat.presentation.globalsearch
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.etozhesandy.redpanda.core.designsystem.components.BaseScreen
 import com.etozhesandy.redpanda.core.designsystem.components.EmptyState
 import com.etozhesandy.redpanda.core.designsystem.components.MESSAGE_SORT_OPTIONS
@@ -53,20 +59,38 @@ fun GlobalSearchScreen(
         },
         modifier = modifier,
     ) {
-        // An empty query isn't "nothing found" — it's nothing asked for yet, so the list simply
-        // stays blank until the user types.
-        if (state.results.isEmpty() && state.query.isNotBlank()) {
-            EmptyState(text = stringResource(R.string.global_search_empty))
-            return@BaseScreen
-        }
-        val listState = rememberLazyListState()
-        ScrollToTopOnChange(state.sort to state.sortAscending) { listState.scrollToItem(0) }
-        LazyColumn(state = listState) {
-            items(state.results, key = { it.message.id }) { result ->
-                GlobalSearchResultItem(
-                    result = result,
-                    onClick = { onEvent(GlobalSearchState.Event.ResultClicked(result)) },
-                )
+        Column {
+            if (state.isSearching) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+
+            // Keep old results visible while a new query is running so the screen never looks
+            // frozen or needlessly empty.
+            if (state.results.isEmpty() && state.query.isNotBlank() && !state.isSearching) {
+                EmptyState(text = stringResource(R.string.global_search_empty))
+                return@Column
+            }
+            val listState = rememberLazyListState()
+            ScrollToTopOnChange(state.sort to state.sortAscending) { listState.scrollToItem(0) }
+            LaunchedEffect(listState, state.query) {
+                snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                    .distinctUntilChanged()
+                    .collect { lastVisibleIndex ->
+                        if (lastVisibleIndex != null && lastVisibleIndex >= state.results.lastIndex - 5) {
+                            onEvent(GlobalSearchState.Event.LoadMore)
+                        }
+                    }
+            }
+            LazyColumn(modifier = Modifier.weight(1f), state = listState) {
+                items(state.results, key = { it.message.id }) { result ->
+                    GlobalSearchResultItem(
+                        result = result,
+                        onClick = { onEvent(GlobalSearchState.Event.ResultClicked(result)) },
+                    )
+                }
+            }
+            if (state.isLoadingMore) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }
