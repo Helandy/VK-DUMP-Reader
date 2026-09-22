@@ -11,6 +11,18 @@ import kotlinx.coroutines.flow.flowOf
 class SearchMessagesUseCase @Inject constructor(
     private val repository: ChatRepository,
 ) {
+    suspend fun searchPage(
+        profileId: String,
+        rawQuery: String,
+        dialogId: String,
+        limit: Int,
+        offset: Int,
+    ): List<Message> {
+        val ftsQuery = rawQuery.asPrefixQuery()
+        if (ftsQuery.isBlank()) return emptyList()
+        return repository.searchMessagesPage(profileId, ftsQuery, dialogId, limit, offset)
+    }
+
     operator fun invoke(
         profileId: String,
         rawQuery: String,

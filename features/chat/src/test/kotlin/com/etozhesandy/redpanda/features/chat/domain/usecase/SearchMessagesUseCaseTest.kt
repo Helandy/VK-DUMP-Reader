@@ -105,6 +105,17 @@ class SearchMessagesUseCaseTest {
             return flowOf(emptyList())
         }
 
+        override suspend fun searchMessagesPage(
+            profileId: String,
+            ftsQuery: String,
+            dialogId: String,
+            limit: Int,
+            offset: Int,
+        ): List<Message> {
+            lastQuery = ftsQuery
+            return emptyList()
+        }
+
         override suspend fun searchAllDialogs(
             profileId: String,
             ftsQuery: String,

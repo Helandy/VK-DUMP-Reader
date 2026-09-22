@@ -12,12 +12,16 @@ object ChatSearchState {
     data class State(
         val query: String = "",
         val results: List<Message> = emptyList(),
+        val isSearching: Boolean = false,
+        val isLoadingMore: Boolean = false,
+        val hasMoreResults: Boolean = false,
         val sort: MessageSort = MessageSort.DATE,
         val sortAscending: Boolean = false,
     ) : UiState
 
     sealed interface Event : UiEvent {
         data class QueryChanged(val query: String) : Event
+        data object LoadMore : Event
         data class ResultClicked(val message: Message) : Event
         data object BackClicked : Event
 

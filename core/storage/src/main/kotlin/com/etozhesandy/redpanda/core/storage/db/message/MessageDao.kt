@@ -54,6 +54,25 @@ interface MessageDao {
         limit: Int = SEARCH_RESULT_LIMIT,
     ): Flow<List<MessageEntity>>
 
+    @Query(
+        """
+        SELECT messages.* FROM messages
+        JOIN messages_fts ON messages.rowId = messages_fts.rowid
+        WHERE messages.profileId = :profileId
+        AND messages.dialogId = :dialogId
+        AND messages_fts MATCH :ftsQuery
+        ORDER BY messages.timestampEpoch DESC, messages.rowId DESC
+        LIMIT :limit OFFSET :offset
+        """,
+    )
+    suspend fun searchMessagesInDialog(
+        profileId: String,
+        dialogId: String,
+        ftsQuery: String,
+        limit: Int,
+        offset: Int,
+    ): List<MessageEntity>
+
     /**
      * The same full-text search across every dialog of one profile, joined to `dialogs` so each
      * result can name the dialog it came from — out of a single chat's context the text alone

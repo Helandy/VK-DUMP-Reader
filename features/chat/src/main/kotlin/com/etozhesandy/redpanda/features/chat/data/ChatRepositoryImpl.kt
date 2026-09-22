@@ -68,6 +68,17 @@ class ChatRepositoryImpl @Inject constructor(
             .map { entities -> entities.map { it.toDomain() } }
             .flowOn(defaultDispatcher)
 
+    override suspend fun searchMessagesPage(
+        profileId: String,
+        ftsQuery: String,
+        dialogId: String,
+        limit: Int,
+        offset: Int,
+    ): List<Message> = withContext(defaultDispatcher) {
+        messageDao.searchMessagesInDialog(profileId, dialogId, ftsQuery, limit, offset)
+            .map { it.toDomain() }
+    }
+
     override suspend fun searchAllDialogs(
         profileId: String,
         ftsQuery: String,

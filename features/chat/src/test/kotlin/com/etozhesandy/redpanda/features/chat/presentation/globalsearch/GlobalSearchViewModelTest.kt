@@ -152,6 +152,13 @@ class GlobalSearchViewModelTest {
         }
 
         override fun searchMessages(profileId: String, ftsQuery: String, dialogId: String?): Flow<List<Message>> = unused()
+        override suspend fun searchMessagesPage(
+            profileId: String,
+            ftsQuery: String,
+            dialogId: String,
+            limit: Int,
+            offset: Int,
+        ): List<Message> = unused()
         override fun observeDialog(dialogId: String): Flow<ChatDialog?> = unused()
         override fun observeProfile(profileId: String): Flow<Profile?> = unused()
         override fun pagingMessages(dialogId: String, isReversed: Boolean, initialPosition: Int?): kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<Message>> = unused()

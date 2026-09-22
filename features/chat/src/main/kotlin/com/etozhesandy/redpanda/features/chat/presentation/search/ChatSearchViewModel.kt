@@ -2,7 +2,6 @@ package com.etozhesandy.redpanda.features.chat.presentation.search
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.common.mvi.BaseViewModel
 import com.etozhesandy.redpanda.core.common.mvi.sortPreference
 import com.etozhesandy.redpanda.core.model.MessageSort
@@ -16,57 +15,43 @@ import com.etozhesandy.redpanda.features.chat.domain.usecase.SearchMessagesUseCa
 import com.etozhesandy.redpanda.features.chat.model.ChatSearchArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class ChatSearchViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nav: INavigationManager,
     private val args: ChatSearchArgs,
     private val cache: ChatSearchCache,
-    searchMessages: SearchMessagesUseCase,
+    private val searchMessages: SearchMessagesUseCase,
     settingsRepository: SettingsRepository,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<ChatSearchState.State, ChatSearchState.Event, ChatSearchState.Effect>() {
 
-    override fun createInitialState() = ChatSearchState.State(query = rawQuery.value)
-
-    private val rawQuery = MutableStateFlow(
-        savedStateHandle.get<String>(KEY_QUERY) ?: cache.query(args.dialogId).orEmpty(),
-    )
+    private val rawQuery = savedStateHandle.get<String>(KEY_QUERY) ?: cache.query(args.dialogId).orEmpty()
     private val sort = savedStateHandle.sortPreference<MessageSort>(
         keyPrefix = "search",
         defaults = settingsRepository.settings.map { it.defaultSearchSort to it.defaultSearchSortAscending },
         naturalAscending = { it.naturalAscending },
         memory = cache.sortMemory(args.dialogId),
     )
+    private var searchJob: Job? = null
+    private var loadMoreJob: Job? = null
+
+    override fun createInitialState() = ChatSearchState.State(
+        query = rawQuery,
+        isSearching = rawQuery.trim().length >= MIN_QUERY_LENGTH,
+    )
 
     init {
         sort.flow
             .onEach { (sort, ascending) -> setState { copy(sort = sort, sortAscending = ascending) } }
             .launchIn(viewModelScope)
-
-        rawQuery
-            .debounce(SEARCH_DEBOUNCE_MS)
-            .flatMapLatest { raw ->
-                if (raw.isBlank()) flowOf(emptyList()) else searchMessages(args.profileId, raw, args.dialogId)
-            }
-            .combine(sort.flow) { messages, (sort, ascending) -> messages.sortedBy(sort, ascending) }
-            .flowOn(defaultDispatcher)
-            .onEach { results -> setState { copy(results = results) } }
-            .launchIn(viewModelScope)
+        if (rawQuery.trim().length >= MIN_QUERY_LENGTH) startSearch(rawQuery)
     }
 
     override fun onEvent(event: ChatSearchState.Event) {
@@ -74,12 +59,21 @@ class ChatSearchViewModel @Inject constructor(
             is ChatSearchState.Event.QueryChanged -> {
                 savedStateHandle[KEY_QUERY] = event.query
                 cache.setQuery(args.dialogId, event.query)
-                setState { copy(query = event.query) }
-                rawQuery.value = event.query
+                searchJob?.cancel()
+                loadMoreJob?.cancel()
+                val searchable = event.query.trim().length >= MIN_QUERY_LENGTH
+                setState {
+                    copy(
+                        query = event.query,
+                        results = emptyList(),
+                        isSearching = searchable,
+                        isLoadingMore = false,
+                        hasMoreResults = false,
+                    )
+                }
+                if (searchable) startSearch(event.query)
             }
-            // Opening a result rebuilds the chat around that message, which takes the search
-            // screen off the stack with it — the order the user was reading in is handed back
-            // exactly as it arrived.
+            ChatSearchState.Event.LoadMore -> loadMore()
             is ChatSearchState.Event.ResultClicked -> nav.navigate(
                 Routes.Chat(
                     dialogId = args.dialogId,
@@ -96,15 +90,49 @@ class ChatSearchViewModel @Inject constructor(
                     current = currentState.sort,
                     currentAscending = currentState.sortAscending,
                 )
-                setState { copy(sort = event.sort, sortAscending = ascending) }
+                setState {
+                    copy(sort = event.sort, sortAscending = ascending, results = results.sortedBy(event.sort, ascending))
+                }
+            }
+        }
+    }
+
+    private fun startSearch(query: String) {
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            val page = searchMessages.searchPage(args.profileId, query, args.dialogId, PAGE_SIZE, 0)
+            setState {
+                copy(
+                    results = page.sortedBy(sort, sortAscending),
+                    isSearching = false,
+                    hasMoreResults = page.size == PAGE_SIZE,
+                )
+            }
+        }
+    }
+
+    private fun loadMore() {
+        if (currentState.isSearching || currentState.isLoadingMore || !currentState.hasMoreResults) return
+        if (currentState.query.trim().length < MIN_QUERY_LENGTH) return
+        val query = currentState.query
+        val offset = currentState.results.size
+        loadMoreJob = viewModelScope.launch {
+            setState { copy(isLoadingMore = true) }
+            val page = searchMessages.searchPage(args.profileId, query, args.dialogId, PAGE_SIZE, offset)
+            setState {
+                copy(
+                    results = (results + page).sortedBy(sort, sortAscending),
+                    isLoadingMore = false,
+                    hasMoreResults = page.size == PAGE_SIZE,
+                )
             }
         }
     }
 
     private companion object {
         const val KEY_QUERY = "search_query"
-
-        /** Long enough that typing a word doesn't run a query per keystroke. */
         const val SEARCH_DEBOUNCE_MS = 250L
+        const val MIN_QUERY_LENGTH = 3
+        const val PAGE_SIZE = 50
     }
 }
