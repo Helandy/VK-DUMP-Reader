@@ -1,16 +1,13 @@
 package com.etozhesandy.redpanda.features.profile.presentation.imagepager
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
 import com.etozhesandy.redpanda.core.designsystem.components.DownloadIconButton
 import com.etozhesandy.redpanda.core.designsystem.components.GoToMessageIconButton
 import com.etozhesandy.redpanda.core.designsystem.components.rememberDownloadToast
+import com.etozhesandy.redpanda.core.designsystem.media.MediaImage
 import com.etozhesandy.redpanda.core.designsystem.media.MediaPagerScreen
-import com.etozhesandy.redpanda.core.designsystem.media.zoomable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -47,11 +44,6 @@ fun ImagePagerScreen(
             }
         },
     ) { page, _, zoom ->
-        AsyncImage(
-            model = page.url,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize().zoomable(zoom),
-        )
+        MediaImage(model = page.url, zoom = zoom)
     }
 }

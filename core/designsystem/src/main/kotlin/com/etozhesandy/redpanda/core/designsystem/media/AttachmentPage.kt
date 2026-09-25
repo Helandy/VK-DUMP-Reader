@@ -1,10 +1,7 @@
 package com.etozhesandy.redpanda.core.designsystem.media
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.AttachmentType
 import java.io.File
@@ -33,13 +30,13 @@ fun AttachmentPage(
             // Only the page on screen plays, so swiping away stops the previous video.
             videoPlayer(attachment.path, isCurrentPage)
 
-        attachment.type.isVisualMedia -> AsyncImage(
+        attachment.type.isVisualMedia -> MediaImage(
             model = if (attachment.path.startsWith("http")) attachment.path else File(attachment.path),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
             // Only a still image zooms — a video is played rather than examined, and a
             // placeholder has no detail to magnify.
-            modifier = modifier.fillMaxSize().let { if (zoom != null) it.zoomable(zoom) else it },
+            zoom = zoom,
+            modifier = modifier,
+            error = { AttachmentPlaceholder(attachment.type, attachment.caption) },
         )
 
         else -> AttachmentPlaceholder(attachment.type, attachment.caption, modifier)

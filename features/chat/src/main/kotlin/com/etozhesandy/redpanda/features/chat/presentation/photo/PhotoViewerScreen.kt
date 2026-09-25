@@ -32,6 +32,7 @@ fun PhotoViewerScreen(
     MediaPagerScreen(
         items = state.attachments,
         startIndex = state.startIndex,
+        key = { it.id },
         onBack = { onEvent(PhotoViewerState.Event.BackClicked) },
         modifier = modifier,
         actions = { current ->

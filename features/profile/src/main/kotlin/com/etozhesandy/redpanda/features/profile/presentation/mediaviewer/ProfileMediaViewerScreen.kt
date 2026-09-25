@@ -32,6 +32,7 @@ fun ProfileMediaViewerScreen(
     MediaPagerScreen(
         items = state.attachments,
         startIndex = state.startIndex,
+        key = { it.id },
         onBack = { onEvent(ProfileMediaViewerState.Event.BackClicked) },
         modifier = modifier,
         actions = { current ->
