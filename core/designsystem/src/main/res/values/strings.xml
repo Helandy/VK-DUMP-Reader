@@ -27,6 +27,8 @@
     <!-- Playback controls over a video in a viewer. -->
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
+    <string name="video_seek_back">−%1$d s</string>
+    <string name="video_seek_forward">+%1$d s</string>
 
     <!-- Sort menu: the control itself and the direction it currently sorts in. -->
     <string name="action_sort">Sort</string>

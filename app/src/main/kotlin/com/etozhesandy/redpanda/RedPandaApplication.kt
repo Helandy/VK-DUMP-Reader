@@ -8,6 +8,7 @@ import coil.ImageLoaderFactory
 import coil.decode.VideoFrameDecoder
 import coil.disk.DiskCache
 import com.etozhesandy.redpanda.core.settings.SettingsRepository
+import com.etozhesandy.redpanda.image.VideoThumbnailFetcher
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -29,7 +30,11 @@ class RedPandaApplication : Application(), Configuration.Provider, ImageLoaderFa
 
     override fun newImageLoader(): ImageLoader =
         ImageLoader.Builder(this)
-            .components { add(VideoFrameDecoder.Factory()) }
+            // The fetcher serves local videos a cached still; the decoder remains for the rest.
+            .components {
+                add(VideoThumbnailFetcher.Factory())
+                add(VideoFrameDecoder.Factory())
+            }
             // Coil calls this initializer lazily, off the main thread, the first time it needs the
             // disk cache — which is what makes the blocking read below acceptable. Reading the
             // setting in `newImageLoader` instead would block the main thread during cold start.
