@@ -48,6 +48,10 @@ fun <T> MediaPagerScreen(
     }
 
     val zoom = rememberZoomState()
+    // The neighbours are composed off-screen (see `beyondViewportPageCount`), so they must not
+    // share the magnification: scaled around their own centre, the next photo grew into the
+    // viewport over the zoomed one. They get a state no gesture ever reaches, which stays at 1x.
+    val idleZoom = rememberZoomState()
     // Leaving a page abandons its magnification: the next one opens fit-to-screen, and the pager
     // gets its horizontal drag back.
     LaunchedEffect(pagerState.currentPage) { zoom.reset() }
@@ -70,7 +74,8 @@ fun <T> MediaPagerScreen(
             modifier = Modifier.fillMaxSize(),
         ) { index ->
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                page(items[index], index == pagerState.currentPage, zoom)
+                val isCurrentPage = index == pagerState.currentPage
+                page(items[index], isCurrentPage, if (isCurrentPage) zoom else idleZoom)
             }
         }
     }
