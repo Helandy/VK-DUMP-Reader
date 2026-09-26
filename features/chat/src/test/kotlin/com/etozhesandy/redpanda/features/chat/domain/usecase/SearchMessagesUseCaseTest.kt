@@ -6,6 +6,7 @@ import com.etozhesandy.redpanda.core.model.ChatDialog
 import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.core.model.Profile
+import com.etozhesandy.redpanda.features.chat.domain.model.MessageWithAttachments
 import com.etozhesandy.redpanda.features.chat.domain.repository.ChatRepository
 import java.sql.DriverManager
 import kotlinx.coroutines.flow.Flow
@@ -132,8 +133,7 @@ class SearchMessagesUseCaseTest {
             dialogId: String,
             isReversed: Boolean,
             initialPosition: Int?,
-        ): Flow<PagingData<Message>> = unused()
-        override suspend fun getAttachmentsForMessage(messageId: String): List<Attachment> = unused()
+        ): Flow<PagingData<MessageWithAttachments>> = unused()
         override fun observeMediaForDialog(dialogId: String): Flow<List<Attachment>> = unused()
         override fun observePhotosForDialog(dialogId: String): Flow<List<Attachment>> = unused()
         override fun observeVideosForDialog(dialogId: String): Flow<List<Attachment>> = unused()

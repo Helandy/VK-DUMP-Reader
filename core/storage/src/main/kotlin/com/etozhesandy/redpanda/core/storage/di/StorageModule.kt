@@ -10,6 +10,7 @@ import com.etozhesandy.redpanda.core.storage.db.friend.FriendDao
 import com.etozhesandy.redpanda.core.storage.db.group.GroupDao
 import com.etozhesandy.redpanda.core.storage.db.message.MessageDao
 import com.etozhesandy.redpanda.core.storage.db.migration.MIGRATION_2_3
+import com.etozhesandy.redpanda.core.storage.db.migration.MIGRATION_3_4
 import com.etozhesandy.redpanda.core.storage.db.profile.ProfileDao
 import com.etozhesandy.redpanda.core.storage.db.savedphoto.SavedPhotoDao
 import dagger.Module
@@ -31,7 +32,7 @@ object StorageModule {
             // time, so a schema change owes them a migration. Every change therefore needs both a
             // bumped version in @Database and a Migration listed here — without one Room refuses
             // to open the database rather than quietly rebuilding it.
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
     @Provides

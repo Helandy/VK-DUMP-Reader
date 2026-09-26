@@ -10,7 +10,6 @@ import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
 import com.etozhesandy.redpanda.core.navigation.manager.PopUpTo
 import com.etozhesandy.redpanda.core.settings.SettingsRepository
-import com.etozhesandy.redpanda.features.chat.domain.usecase.GetAttachmentsForMessageUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.GetMessagePositionUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.ObserveFavoriteMessageIdsUseCase
 import com.etozhesandy.redpanda.features.chat.domain.usecase.ObserveMessagesUseCase
@@ -39,7 +38,6 @@ import kotlinx.coroutines.flow.onEach
 class MessagesTabViewModel @Inject constructor(
     private val nav: INavigationManager,
     private val args: ChatArgs,
-    private val getAttachments: GetAttachmentsForMessageUseCase,
     private val toggleFavorite: ToggleFavoriteUseCase,
     observeMessages: ObserveMessagesUseCase,
     observeFavoriteIds: ObserveFavoriteMessageIdsUseCase,
@@ -68,9 +66,9 @@ class MessagesTabViewModel @Inject constructor(
         .flatMapLatest { (isReversed, initialPosition) ->
             observeMessages(args.dialogId, isReversed, initialPosition)
         }
-        .map { pagingData -> pagingData.map { message -> message.toUi(getAttachments) } }
-        // Joining each page with its attachments is dispatched from wherever this is collected,
-        // and `cachedIn` collects in `viewModelScope` — i.e. on the main thread without this.
+        .map { pagingData -> pagingData.map { it.toUi() } }
+        // Mapping each page is dispatched from wherever this is collected, and `cachedIn` collects
+        // in `viewModelScope` — i.e. on the main thread without this.
         .flowOn(defaultDispatcher)
         .cachedIn(viewModelScope)
 

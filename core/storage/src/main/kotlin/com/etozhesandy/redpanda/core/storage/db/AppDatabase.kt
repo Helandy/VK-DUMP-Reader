@@ -33,7 +33,7 @@ import com.etozhesandy.redpanda.core.storage.db.savedphoto.SavedPhotoEntity
         GroupEntity::class,
         SavedPhotoEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @TypeConverters(StorageTypeConverters::class)

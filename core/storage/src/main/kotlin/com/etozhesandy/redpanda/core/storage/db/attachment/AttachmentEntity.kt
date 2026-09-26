@@ -16,6 +16,9 @@ import com.etozhesandy.redpanda.core.model.AttachmentType
         // without these the type filters degrade to a full scan of a profile's attachments.
         Index(value = ["dialogId", "type", "timestampEpoch"]),
         Index(value = ["profileId", "type", "timestampEpoch"]),
+        // The archive-folder screens group and filter a profile's files by folder; without this
+        // each of them sorted every attachment of the profile into a temporary B-tree first.
+        Index(value = ["profileId", "sourceFolder", "timestampEpoch"]),
     ],
 )
 data class AttachmentEntity(

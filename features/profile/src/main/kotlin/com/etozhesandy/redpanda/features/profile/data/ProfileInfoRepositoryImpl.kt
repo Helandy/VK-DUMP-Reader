@@ -23,6 +23,7 @@ import com.etozhesandy.redpanda.features.profile.domain.repository.ProfileInfoRe
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -56,20 +57,24 @@ class ProfileInfoRepositoryImpl @Inject constructor(
     override fun observeAttachments(profileId: String): Flow<List<Attachment>> =
         attachmentDao.observeByTypesForProfile(profileId, listOf(AttachmentType.PHOTO))
             .map { entities -> entities.map { it.toDomain() } }
+            .distinctUntilChanged()
             .flowOn(defaultDispatcher)
 
     override fun observeArchiveFiles(profileId: String): Flow<List<Attachment>> =
         attachmentDao.observeArchiveFilesForProfile(profileId)
             .map { entities -> entities.map { it.toDomain() } }
+            .distinctUntilChanged()
             .flowOn(defaultDispatcher)
 
     override fun observeArchiveFolders(profileId: String): Flow<List<ArchiveFolder>> =
         attachmentDao.observeArchiveFolders(profileId)
             .map { summaries -> summaries.map { it.toDomain() } }
+            .distinctUntilChanged()
             .flowOn(defaultDispatcher)
 
     override fun observeArchiveFilesInFolder(profileId: String, folder: String): Flow<List<Attachment>> =
         attachmentDao.observeArchiveFilesInFolder(profileId, folder)
             .map { entities -> entities.map { it.toDomain() } }
+            .distinctUntilChanged()
             .flowOn(defaultDispatcher)
 }

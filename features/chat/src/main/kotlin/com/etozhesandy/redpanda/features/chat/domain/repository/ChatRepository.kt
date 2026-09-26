@@ -6,6 +6,7 @@ import com.etozhesandy.redpanda.core.model.ChatDialog
 import com.etozhesandy.redpanda.core.model.DialogMessage
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.core.model.Profile
+import com.etozhesandy.redpanda.features.chat.domain.model.MessageWithAttachments
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
@@ -15,7 +16,7 @@ interface ChatRepository {
         dialogId: String,
         isReversed: Boolean,
         initialPosition: Int?,
-    ): Flow<PagingData<Message>>
+    ): Flow<PagingData<MessageWithAttachments>>
     fun searchMessages(profileId: String, ftsQuery: String, dialogId: String?): Flow<List<Message>>
     suspend fun searchMessagesPage(
         profileId: String,
@@ -30,7 +31,6 @@ interface ChatRepository {
         limit: Int,
         offset: Int,
     ): List<DialogMessage>
-    suspend fun getAttachmentsForMessage(messageId: String): List<Attachment>
     fun observeMediaForDialog(dialogId: String): Flow<List<Attachment>>
     fun observePhotosForDialog(dialogId: String): Flow<List<Attachment>>
     fun observeVideosForDialog(dialogId: String): Flow<List<Attachment>>

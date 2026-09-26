@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.etozhesandy.redpanda.core.designsystem.media.isVisualMedia
 import com.etozhesandy.redpanda.features.chat.R
@@ -86,6 +87,11 @@ private fun MessagesList(
         items(
             count = pagingItems.itemCount,
             key = pagingItems.itemKey { it.message.id },
+            // Plain text and a bubble full of media measure nothing alike; keeping them apart lets
+            // a scrolled-off row be reused by one of its own kind.
+            contentType = pagingItems.itemContentType { item ->
+                if (item.attachments.isEmpty()) MESSAGE_TEXT else MESSAGE_WITH_ATTACHMENTS
+            },
         ) { index ->
             val item = pagingItems[index] ?: return@items
             val message = item.message
@@ -116,3 +122,6 @@ private fun MessagesList(
         }
     }
 }
+
+private const val MESSAGE_TEXT = "text"
+private const val MESSAGE_WITH_ATTACHMENTS = "attachments"

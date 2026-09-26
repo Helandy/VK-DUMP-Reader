@@ -17,11 +17,15 @@ import kotlinx.coroutines.flow.Flow
 interface AttachmentDao {
 
     /**
-     * Read once rather than observed: a page of messages maps its attachments while it is being
-     * built, and an archive is read-only once imported, so there is nothing to watch for.
+     * Everything attached to one page of messages, in a single query rather than one per message.
+     * Read once rather than observed: an archive is read-only once imported, so there is nothing
+     * to watch for. Callers keep [messageIds] to a page — SQLite caps bound parameters at 999.
      */
-    @Query("SELECT * FROM attachments WHERE messageId = :messageId ORDER BY orderInMessage ASC")
-    suspend fun getAttachmentsForMessage(messageId: String): List<AttachmentEntity>
+    @Query(
+        "SELECT * FROM attachments WHERE messageId IN (:messageIds) " +
+            "ORDER BY messageId ASC, orderInMessage ASC",
+    )
+    suspend fun getAttachmentsForMessages(messageIds: List<String>): List<AttachmentEntity>
 
     @Query(
         "SELECT * FROM attachments WHERE dialogId = :dialogId AND type IN (:types) " +

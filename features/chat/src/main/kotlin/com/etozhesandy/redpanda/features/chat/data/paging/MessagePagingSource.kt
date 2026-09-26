@@ -2,8 +2,12 @@ package com.etozhesandy.redpanda.features.chat.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.etozhesandy.redpanda.core.storage.db.attachment.AttachmentDao
+import com.etozhesandy.redpanda.core.storage.db.attachment.toDomain
 import com.etozhesandy.redpanda.core.storage.db.message.MessageDao
 import com.etozhesandy.redpanda.core.storage.db.message.MessageEntity
+import com.etozhesandy.redpanda.core.storage.db.message.toDomain
+import com.etozhesandy.redpanda.features.chat.domain.model.MessageWithAttachments
 
 /**
  * Pages one dialog by `LIMIT`/`OFFSET`, deliberately outside Room's invalidation tracker.
@@ -18,17 +22,27 @@ import com.etozhesandy.redpanda.core.storage.db.message.MessageEntity
  * takes the refresh key from `PagingState.anchorPosition`, which is a database offset only while
  * placeholders are on; with them off the anchor counts loaded items, so each refresh walked the
  * list back towards the start of the dialog.
+ *
+ * Each page arrives joined with its attachments, fetched in one query for the whole page — one
+ * query per message made a page of photos cost fifty round trips to the database.
  */
 class MessagePagingSource(
     private val messageDao: MessageDao,
+    private val attachmentDao: AttachmentDao,
     private val dialogId: String,
     private val isReversed: Boolean,
-) : PagingSource<Int, MessageEntity>() {
+) : PagingSource<Int, MessageWithAttachments>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MessageEntity> {
-        // Read per load rather than once: a page can be requested while an import is still
-        // writing, and a stale count would cut the dialog short at the old last message.
-        val itemCount = messageDao.countMessages(dialogId)
+    /**
+     * Counted on refresh only: `COUNT(*)` walks the dialog's index, and a long dialog paid for it
+     * on every page. The end of the dialog is found by a short page instead, so a count gone stale
+     * while an import is still writing no longer cuts the dialog short at its old last message.
+     */
+    private var itemCount: Int? = null
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MessageWithAttachments> {
+        val knownCount = itemCount.takeIf { params !is LoadParams.Refresh }
+            ?: messageDao.countMessages(dialogId).also { itemCount = it }
         val key = params.key ?: 0
         // Keys are offsets of the first row of a page, so a prepend counts backwards from its key
         // and shortens itself when fewer rows than a full page are left in front of it.
@@ -41,17 +55,21 @@ class MessagePagingSource(
             is LoadParams.Append -> key
             // A refresh key can outrun the table if rows were removed since it was taken; clamping
             // lands on the last full page instead of on nothing at all.
-            is LoadParams.Refresh -> key.coerceAtMost(maxOf(0, itemCount - params.loadSize))
+            is LoadParams.Refresh -> key.coerceAtMost(maxOf(0, knownCount - params.loadSize))
         }
 
         val page = if (limit == 0) emptyList() else loadPage(limit, offset)
         val loadedThrough = offset + page.size
+        val count = maxOf(knownCount, loadedThrough).also { itemCount = it }
+        // A prepend is shortened on purpose near the start; anywhere else a short page means the
+        // dialog ended.
+        val isLastPage = params !is LoadParams.Prepend && page.size < limit
         return LoadResult.Page(
-            data = page,
+            data = page.withAttachments(),
             prevKey = if (offset == 0 || page.isEmpty()) null else offset,
-            nextKey = if (page.isEmpty() || loadedThrough >= itemCount) null else loadedThrough,
+            nextKey = if (page.isEmpty() || isLastPage) null else loadedThrough,
             itemsBefore = offset,
-            itemsAfter = maxOf(0, itemCount - loadedThrough),
+            itemsAfter = count - loadedThrough,
         )
     }
 
@@ -60,7 +78,7 @@ class MessagePagingSource(
      * [PagingState.anchorPosition] counts loaded items and says nothing about where in the dialog
      * those items came from, but every page here records the offset it was loaded with.
      */
-    override fun getRefreshKey(state: PagingState<Int, MessageEntity>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, MessageWithAttachments>): Int? {
         val loadedCount = state.pages.sumOf { it.data.size }
         if (loadedCount == 0) return null
         val anchor = (state.anchorPosition ?: return null).coerceIn(0, loadedCount - 1)
@@ -81,4 +99,23 @@ class MessagePagingSource(
     private suspend fun loadPage(limit: Int, offset: Int): List<MessageEntity> =
         if (isReversed) messageDao.getMessagesPageDescending(dialogId, limit, offset)
         else messageDao.getMessagesPageAscending(dialogId, limit, offset)
+
+    /**
+     * Messages without attachments are the common case and are left out of the query outright —
+     * `hasAttachments` is stored on the message for exactly this.
+     */
+    private suspend fun List<MessageEntity>.withAttachments(): List<MessageWithAttachments> {
+        val withAttachments = filter { it.hasAttachments }.map { it.messageId }
+        val attachments = if (withAttachments.isEmpty()) {
+            emptyMap()
+        } else {
+            attachmentDao.getAttachmentsForMessages(withAttachments).groupBy({ it.messageId }, { it.toDomain() })
+        }
+        return map { entity ->
+            MessageWithAttachments(
+                message = entity.toDomain(),
+                attachments = attachments[entity.messageId].orEmpty(),
+            )
+        }
+    }
 }
