@@ -11,6 +11,7 @@ import com.etozhesandy.redpanda.core.settings.SettingsRepository
 import com.etozhesandy.redpanda.features.chat.domain.model.sortedBy
 import com.etozhesandy.redpanda.features.chat.domain.usecase.ObserveDialogAudioUseCase
 import com.etozhesandy.redpanda.features.chat.model.ChatArgs
+import com.etozhesandy.redpanda.features.chat.presentation.chat.handler.AudioHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,6 +25,7 @@ class AudioTabViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     args: ChatArgs,
     observeDialogAudio: ObserveDialogAudioUseCase,
+    private val audio: AudioHandler,
     @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<AudioTabState.State, AudioTabState.Event, AudioTabState.Effect>() {
 
@@ -43,6 +45,10 @@ class AudioTabViewModel @Inject constructor(
         observeDialogAudio(args.dialogId).sortedBy(sort.flow, defaultDispatcher)
             .onEach { audio -> setState { copy(attachments = audio) } }
             .launchIn(viewModelScope)
+
+        audio.prepared
+            .onEach { prepared -> setState { copy(preparedAudio = prepared) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: AudioTabState.Event) {
@@ -55,6 +61,8 @@ class AudioTabViewModel @Inject constructor(
                 )
                 setState { copy(sort = event.sort, sortAscending = ascending) }
             }
+
+            is AudioTabState.Event.AudioShown -> audio.request(viewModelScope, event.attachment)
         }
     }
 }

@@ -25,4 +25,5 @@
     <string name="global_search_placeholder">Search all dialogs</string>
     <string name="global_search_close">Close search</string>
     <string name="global_search_empty">Nothing found</string>
+    <string name="chat_audio_unavailable">This audio is no longer available</string>
 </resources>

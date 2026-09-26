@@ -1,6 +1,8 @@
 package com.etozhesandy.redpanda.features.chat.data.di
 
+import com.etozhesandy.redpanda.features.chat.data.AudioRepositoryImpl
 import com.etozhesandy.redpanda.features.chat.data.ChatRepositoryImpl
+import com.etozhesandy.redpanda.features.chat.domain.repository.AudioRepository
 import com.etozhesandy.redpanda.features.chat.domain.repository.ChatRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,7 @@ abstract class ChatDataModule {
     @Binds
     @Singleton
     abstract fun bindChatRepository(impl: ChatRepositoryImpl): ChatRepository
+
+    @Binds
+    abstract fun bindAudioRepository(impl: AudioRepositoryImpl): AudioRepository
 }

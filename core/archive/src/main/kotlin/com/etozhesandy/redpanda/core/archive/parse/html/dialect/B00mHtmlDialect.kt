@@ -92,7 +92,8 @@ class B00mHtmlDialect @Inject constructor() : HtmlDialect {
             val href = element.attr("href")
             when {
                 element.hasClass(MEDIA_CLASS) -> href.toAttachment(mediaType(href))
-                element.tagName() == "source" -> element.attr("src").toAttachment(AttachmentType.AUDIO)
+                element.tagName() == "source" || element.tagName() == "audio" ->
+                    element.attr("src").toAttachment(AttachmentType.AUDIO)
                 element.tagName() == "img" -> element.attr("src").toAttachment(AttachmentType.STICKER)
                 href.contains(WALL_MARKER, ignoreCase = true) ->
                     href.toAttachment(AttachmentType.WALL, element.text().trim().ifBlank { null })
@@ -159,7 +160,7 @@ class B00mHtmlDialect @Inject constructor() : HtmlDialect {
          * images, and links to documents and wall posts.
          */
         const val INLINE_SELECTOR =
-            "$MEDIA_SELECTOR, audio source[src], img[src*=vk.com/sticker], " +
+            "$MEDIA_SELECTOR, audio[src], audio source[src], img[src*=vk.com/sticker], " +
                 "a[href*=vk.com/doc], a[href*=vk.com/wall], a[href][target=_blank]:has(img)"
 
         /** `.htm` and `.html` both occur, from the same dumper. */

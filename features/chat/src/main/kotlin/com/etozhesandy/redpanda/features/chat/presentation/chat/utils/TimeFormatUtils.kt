@@ -24,3 +24,16 @@ fun isSameDay(epochMillisA: Long, epochMillisB: Long): Boolean {
     return Math.floorDiv(epochMillisA + timeZone.getOffset(epochMillisA), MILLIS_PER_DAY) ==
         Math.floorDiv(epochMillisB + timeZone.getOffset(epochMillisB), MILLIS_PER_DAY)
 }
+
+/** `m:ss`, or `h:mm:ss` past an hour — the way a player shows a track's length. */
+fun formatDuration(millis: Long): String {
+    val totalSeconds = millis.coerceAtLeast(0) / 1000
+    val hours = totalSeconds / 3600
+    val minutes = totalSeconds % 3600 / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        String.format(Locale.ROOT, "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(Locale.ROOT, "%d:%02d", minutes, seconds)
+    }
+}

@@ -9,14 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.flow.first
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,14 +23,19 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.etozhesandy.redpanda.core.designsystem.media.isVisualMedia
+import com.etozhesandy.redpanda.core.model.Attachment
+import com.etozhesandy.redpanda.core.model.AttachmentType
 import com.etozhesandy.redpanda.features.chat.R
 import com.etozhesandy.redpanda.features.chat.model.MessageUi
 import com.etozhesandy.redpanda.features.chat.presentation.chat.utils.formatMessageDate
 import com.etozhesandy.redpanda.features.chat.presentation.chat.utils.isSameDay
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.AudioListItem
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.DateSeparator
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.MessageBubble
-import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
 import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsHeight
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.TabActionsRow
+import com.etozhesandy.redpanda.features.chat.presentation.chat.view.rememberAudioPlayback
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun MessagesTabScreen(
@@ -53,8 +57,22 @@ fun MessagesTabScreen(
         listState.scrollToItem(index)
         targetReached = true
     }
+    // One player for the whole chat, so starting a voice message stops the previous one.
+    val playback = rememberAudioPlayback()
     Box(modifier = modifier.fillMaxSize()) {
         MessagesList(
+            audioContent = { attachment ->
+                LaunchedEffect(attachment.id) { onEvent(MessagesTabState.Event.AudioShown(attachment)) }
+                val prepared = state.preparedAudio[attachment.id]
+                AudioListItem(
+                    attachment = attachment,
+                    isPlaying = playback.isPlaying(attachment),
+                    onClick = { playback.toggle(attachment, prepared?.localPath) },
+                    durationMs = prepared?.durationMs,
+                    progress = playback.progressOf(attachment, prepared?.durationMs),
+                    onSeek = { playback.seekTo(attachment, it) },
+                )
+            },
             favoriteIds = state.favoriteIds,
             pagingItems = pagingItems,
             listState = listState,
@@ -73,6 +91,7 @@ fun MessagesTabScreen(
 
 @Composable
 private fun MessagesList(
+    audioContent: @Composable (Attachment) -> Unit,
     favoriteIds: Set<String>,
     pagingItems: LazyPagingItems<MessageUi>,
     listState: LazyListState,
@@ -114,10 +133,11 @@ private fun MessagesList(
                         attachment.type.isVisualMedia ->
                             onEvent(MessagesTabState.Event.AttachmentClicked(attachment.id))
 
-                        attachment.path.startsWith("http") ->
+                        attachment.type != AttachmentType.AUDIO && attachment.path.startsWith("http") ->
                             onEvent(MessagesTabState.Event.FileClicked(attachment.path))
                     }
                 },
+                audioContent = audioContent,
             )
         }
     }

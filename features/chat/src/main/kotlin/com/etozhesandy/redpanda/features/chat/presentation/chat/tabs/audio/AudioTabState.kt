@@ -5,12 +5,15 @@ import com.etozhesandy.redpanda.core.common.mvi.UiEvent
 import com.etozhesandy.redpanda.core.common.mvi.UiState
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.MediaSort
+import com.etozhesandy.redpanda.features.chat.domain.model.PreparedAudio
 
 /** MVI-контракт таба «Аудио». Воспроизведение остаётся в UI — плеер живёт ровно столько, сколько таб. */
 object AudioTabState {
 
     data class State(
         val attachments: List<Attachment> = emptyList(),
+        /** Audio prepared for playback — a local copy and its length — by attachment id. */
+        val preparedAudio: Map<String, PreparedAudio> = emptyMap(),
         val sort: MediaSort = MediaSort.DATE,
         val sortAscending: Boolean = true,
     ) : UiState
@@ -18,6 +21,9 @@ object AudioTabState {
     sealed interface Event : UiEvent {
         /** Picking the sort that's already active flips the direction instead of changing the key. */
         data class SortSelected(val sort: MediaSort) : Event
+
+        /** A row came into view, so its audio is worth preparing. */
+        data class AudioShown(val attachment: Attachment) : Event
     }
 
     sealed interface Effect : UiEffect

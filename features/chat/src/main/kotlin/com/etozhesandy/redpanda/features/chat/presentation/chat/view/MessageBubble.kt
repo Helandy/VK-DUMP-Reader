@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,7 @@ import com.etozhesandy.redpanda.core.designsystem.theme.PandaBubbleIncomingDark
 import com.etozhesandy.redpanda.core.designsystem.theme.PandaBubbleIncomingLight
 import com.etozhesandy.redpanda.core.designsystem.theme.PandaWhite
 import com.etozhesandy.redpanda.core.model.Attachment
+import com.etozhesandy.redpanda.core.model.AttachmentType
 import com.etozhesandy.redpanda.core.model.Message
 import com.etozhesandy.redpanda.features.chat.R
 import com.etozhesandy.redpanda.features.chat.presentation.chat.utils.formatMessageTime
@@ -41,8 +43,12 @@ fun MessageBubble(
     isFavorite: Boolean,
     onFavoriteToggle: () -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
+    audioContent: @Composable (Attachment) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Voice messages are played in place, as a row with its own control, rather than shown as a
+    // tile that could only hand the link to another app.
+    val (audio, visual) = remember(attachments) { attachments.partition { it.type == AttachmentType.AUDIO } }
     val alignment = if (message.isOutgoing) Alignment.End else Alignment.Start
     val bubbleColor: Color
     val contentColor: Color
@@ -64,9 +70,9 @@ fun MessageBubble(
             modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (attachments.isNotEmpty()) {
+                if (visual.isNotEmpty()) {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(attachments, key = { it.id }) { attachment ->
+                        items(visual, key = { it.id }) { attachment ->
                             AttachmentThumbnail(
                                 attachment = attachment,
                                 onClick = { onAttachmentClick(attachment) },
@@ -74,6 +80,7 @@ fun MessageBubble(
                         }
                     }
                 }
+                audio.forEach { attachment -> audioContent(attachment) }
                 if (message.text.isNotBlank()) {
                     Text(text = message.text, style = MaterialTheme.typography.bodyLarge, color = contentColor)
                 }

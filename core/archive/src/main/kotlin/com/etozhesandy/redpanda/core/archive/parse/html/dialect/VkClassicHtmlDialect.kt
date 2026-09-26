@@ -19,6 +19,10 @@ import org.jsoup.nodes.TextNode
  * `Диалоги/{категория}/{Имя (idN)}/history_N.html`, with message blocks shaped as
  * `div.m > (div.mp img, div.mm > a.ma + span.md, div.mc > div.mt (+ div.a > a))`.
  *
+ * Voice messages come in two generations: older exports write only the word "Аудио", newer ones
+ * embed an `<audio src>` with the playable CDN link, which is what a browser opening the export
+ * plays.
+ *
  * Note the attachment block is written `<div class=a>` — unquoted — so it is matched by class, not
  * by an attribute-value selector.
  */
@@ -60,10 +64,11 @@ class VkClassicHtmlDialect @Inject constructor() : HtmlDialect {
         document.select("a.Ae").map { RawHtmlAttachment(type, it.attr("href")) }
 
     /**
-     * The attachment block mixes three shapes with no type markers at all, so its direct children
+     * The attachment block mixes several shapes with no type markers at all, so its direct children
      * are walked rather than selected: anchors (photos, videos, documents, wall posts), bare `img`
      * elements (stickers — by far the most common attachment in real archives, and previously
-     * invisible because nothing looked outside anchors), and a bare text node for voice messages.
+     * invisible because nothing looked outside anchors), and voice messages — an `audio` element in
+     * newer exports, a bare text node in older ones.
      */
     private fun parseInlineAttachments(block: Element): List<RawHtmlAttachment> =
         block.select("div.a").flatMap { attachments ->
@@ -82,6 +87,12 @@ class VkClassicHtmlDialect @Inject constructor() : HtmlDialect {
             ?.let { RawHtmlAttachment(AttachmentType.STICKER, it) }
 
         "a" -> anchorAttachment(element)
+        // `src` sits on the element itself in the exports seen so far; a nested `source` is the
+        // other way HTML allows writing it.
+        "audio" -> (element.attr("src").ifBlank { element.selectFirst("source[src]")?.attr("src").orEmpty() })
+            .takeIf { it.isNotBlank() }
+            ?.let { RawHtmlAttachment(AttachmentType.AUDIO, it, AUDIO_LABEL) }
+
         else -> null
     }
 

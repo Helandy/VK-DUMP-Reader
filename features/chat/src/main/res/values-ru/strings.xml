@@ -24,4 +24,5 @@
     <string name="global_search_placeholder">Поиск по всем диалогам</string>
     <string name="global_search_close">Закрыть поиск</string>
     <string name="global_search_empty">Ничего не найдено</string>
+    <string name="chat_audio_unavailable">Аудио больше недоступно</string>
 </resources>

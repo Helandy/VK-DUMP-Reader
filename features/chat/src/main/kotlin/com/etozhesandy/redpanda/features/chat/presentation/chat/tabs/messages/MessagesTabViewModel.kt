@@ -18,6 +18,7 @@ import com.etozhesandy.redpanda.features.chat.mapper.toOrderOverride
 import com.etozhesandy.redpanda.features.chat.mapper.toUi
 import com.etozhesandy.redpanda.features.chat.model.ChatArgs
 import com.etozhesandy.redpanda.features.chat.model.MessageUi
+import com.etozhesandy.redpanda.features.chat.presentation.chat.handler.AudioHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,6 +40,7 @@ class MessagesTabViewModel @Inject constructor(
     private val nav: INavigationManager,
     private val args: ChatArgs,
     private val toggleFavorite: ToggleFavoriteUseCase,
+    private val audio: AudioHandler,
     observeMessages: ObserveMessagesUseCase,
     observeFavoriteIds: ObserveFavoriteMessageIdsUseCase,
     getMessagePosition: GetMessagePositionUseCase,
@@ -80,6 +82,9 @@ class MessagesTabViewModel @Inject constructor(
         observeFavoriteIds(args.dialogId)
             .onEach { ids -> setState { copy(favoriteIds = ids) } }
             .launchIn(viewModelScope)
+        audio.prepared
+            .onEach { prepared -> setState { copy(preparedAudio = prepared) } }
+            .launchIn(viewModelScope)
     }
 
     override fun onEvent(event: MessagesTabState.Event) {
@@ -90,6 +95,7 @@ class MessagesTabViewModel @Inject constructor(
                 nav.navigate(Routes.PhotoViewer(args.dialogId, event.attachmentId))
             is MessagesTabState.Event.FileClicked ->
                 setEffect { MessagesTabState.Effect.OpenExternally(event.url) }
+            is MessagesTabState.Event.AudioShown -> audio.request(viewModelScope, event.attachment)
             MessagesTabState.Event.ToggleOrderReversed -> recreateChat()
         }
     }
