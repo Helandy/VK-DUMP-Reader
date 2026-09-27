@@ -187,5 +187,6 @@ class GlobalSearchViewModelTest {
         override suspend fun setDefaultChatReversed(value: Boolean) = Unit
         override suspend fun setDefaultMediaSort(sort: MediaSort, ascending: Boolean) = Unit
         override suspend fun setDefaultSearchSort(sort: MessageSort, ascending: Boolean) = Unit
+        override suspend fun setLoggingEnabled(value: Boolean) = Unit
     }
 }

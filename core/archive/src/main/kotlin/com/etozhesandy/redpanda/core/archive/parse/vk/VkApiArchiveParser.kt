@@ -2,6 +2,7 @@ package com.etozhesandy.redpanda.core.archive.parse.vk
 
 import com.etozhesandy.redpanda.core.archive.parse.ChatArchiveParser
 import com.etozhesandy.redpanda.core.archive.parse.ParseSink
+import com.etozhesandy.redpanda.core.archive.parse.importParallelism
 import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import com.etozhesandy.redpanda.core.model.Attachment
@@ -34,7 +35,7 @@ import kotlinx.serialization.json.jsonObject
  * Parses a second, richer VK export layout seen in the wild: a self-contained viewer app with
  * `profile.json` at the root and `messages/{peerId}/{data.json, 1.json, 2.json, ...}` — each file
  * is a raw VK API `messages.getHistory` response dump, saved as a JS assignment
- * (`messages=[...]`) rather than bare JSON, which [stripJsAssignment] peels off before parsing.
+ * (`messages=[...]`) rather than bare JSON, which [readJsonElement] peels off while parsing.
  *
  * Unlike the HTML export ([VkArchiveParser]), messages here carry a native `out` boolean, so
  * [Message.isOutgoing] doesn't need to be inferred, and attachments are already embedded per
@@ -68,7 +69,7 @@ class VkApiArchiveParser @Inject constructor(
             val peerDirs = messagesDir.listFiles { file -> file.isDirectory }.orEmpty()
             sink.onDialogsDiscovered(peerDirs.size)
 
-            val semaphore = Semaphore(PARALLELISM)
+            val semaphore = Semaphore(importParallelism())
             coroutineScope {
                 peerDirs.map { peerDir ->
                     async(ioDispatcher) {
@@ -97,7 +98,7 @@ class VkApiArchiveParser @Inject constructor(
         val peerAvatarPath = peerEntity?.str("photo_100", "photo_50")
 
         val dataJson = runCatching {
-            json.parseToJsonElement(stripJsAssignment(File(peerDir, "data.json").readText())).jsonObject
+            json.readJsonElement(File(peerDir, "data.json")).jsonObject
         }.getOrNull()
         val nameById = buildNameLookup(dataJson)
 
@@ -114,7 +115,7 @@ class VkApiArchiveParser @Inject constructor(
             val pageFile = File(peerDir, "$page.json")
             if (!pageFile.exists()) continue
             val pageMessages = runCatching {
-                json.parseToJsonElement(stripJsAssignment(pageFile.readText())).jsonArray
+                json.readJsonElement(pageFile).jsonArray
             }.getOrNull() ?: continue
 
             for (element in pageMessages) {
@@ -414,17 +415,16 @@ class VkApiArchiveParser @Inject constructor(
         readJsonFile(file) { it.jsonArray }
 
     /**
-     * Reads one of the root-level payloads on the IO dispatcher and parses it on the caller's:
-     * these are the only reads on the parse path not already inside an `async(ioDispatcher)`, and
-     * `conversations.json` alone runs to tens of megabytes on a real dump.
+     * Reads and parses one of the root-level payloads on the IO dispatcher: these are the only
+     * reads on the parse path not already inside an `async(ioDispatcher)`, and `conversations.json`
+     * alone runs to tens of megabytes on a real dump.
      *
      * Null covers a missing file, unparseable content and a payload of the wrong shape alike —
      * every caller treats an absent section as a normal export shape, not a failure.
      */
     private suspend fun <T> readJsonFile(file: File, cast: (JsonElement) -> T): T? {
-        val raw = withContext(ioDispatcher) { runCatching { file.readText() }.getOrNull() } ?: return null
         // The cast runs inside the catch because `jsonObject`/`jsonArray` throw on a mismatch.
-        return runCatching { cast(json.parseToJsonElement(stripJsAssignment(raw))) }.getOrNull()
+        return withContext(ioDispatcher) { runCatching { cast(json.readJsonElement(file)) }.getOrNull() }
     }
 
     /** A place VK writes either as a plain string or as an `{id, title}` object. */
@@ -432,7 +432,6 @@ class VkApiArchiveParser @Inject constructor(
 
     private companion object {
         const val BATCH_SIZE = 2000
-        const val PARALLELISM = 4
         const val GROUP_PEER_ID_THRESHOLD = 2_000_000_000L
         const val CAPTION_LIMIT = 200
 

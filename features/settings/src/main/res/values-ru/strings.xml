@@ -46,4 +46,12 @@
     <string name="settings_app_version">Версия приложения</string>
     <string name="settings_feedback">Вопросы/Идеи/Предложения</string>
 
+    <string name="settings_diagnostics">Диагностика</string>
+    <string name="settings_logging">Записывать лог приложения</string>
+    <string name="settings_logging_description">Лог хранится только на устройстве. Включите, повторите проблему, откройте приложение снова и отправьте лог.</string>
+    <string name="settings_log_share">Отправить лог</string>
+    <string name="settings_log_clear">Очистить лог</string>
+    <string name="settings_log_empty">Лог пуст</string>
+    <string name="settings_log_cleared">Лог очищен</string>
+
 </resources>

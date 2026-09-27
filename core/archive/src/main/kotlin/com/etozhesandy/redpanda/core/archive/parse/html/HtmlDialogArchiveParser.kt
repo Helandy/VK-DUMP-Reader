@@ -2,6 +2,7 @@ package com.etozhesandy.redpanda.core.archive.parse.html
 
 import com.etozhesandy.redpanda.core.archive.parse.ChatArchiveParser
 import com.etozhesandy.redpanda.core.archive.parse.ParseSink
+import com.etozhesandy.redpanda.core.archive.parse.importParallelism
 import com.etozhesandy.redpanda.core.model.Attachment
 import com.etozhesandy.redpanda.core.model.AttachmentType
 import com.etozhesandy.redpanda.core.model.ChatDialog
@@ -60,7 +61,7 @@ class HtmlDialogArchiveParser(
                 .filterValues { it > 1 }
                 .keys
 
-            val semaphore = Semaphore(PARALLELISM)
+            val semaphore = Semaphore(importParallelism())
             coroutineScope {
                 contactDirs.map { (category, contactDir) ->
                     async(ioDispatcher) {
@@ -232,7 +233,6 @@ class HtmlDialogArchiveParser(
 
     private companion object {
         const val BATCH_SIZE = 2000
-        const val PARALLELISM = 4
 
         /**
          * Stand-ins for the archive owner, used only by dialects whose markup names neither the

@@ -22,4 +22,6 @@ interface SettingsRepository {
     suspend fun setDefaultMediaSort(sort: MediaSort, ascending: Boolean)
 
     suspend fun setDefaultSearchSort(sort: MessageSort, ascending: Boolean)
+
+    suspend fun setLoggingEnabled(value: Boolean)
 }

@@ -19,6 +19,7 @@ class SettingsNavRegistrar @Inject constructor() : NavRegistrar {
             val state by viewModel.state.collectAsStateWithLifecycle()
             SettingsScreen(
                 state = state,
+                effect = viewModel.effect,
                 onEvent = viewModel::onEvent,
             )
         }

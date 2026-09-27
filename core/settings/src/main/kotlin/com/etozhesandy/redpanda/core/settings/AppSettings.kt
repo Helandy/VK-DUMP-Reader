@@ -15,6 +15,7 @@ data class AppSettings(
     val defaultMediaSortAscending: Boolean = DEFAULT_MEDIA_SORT_ASCENDING,
     val defaultSearchSort: MessageSort = DEFAULT_SEARCH_SORT,
     val defaultSearchSortAscending: Boolean = DEFAULT_SEARCH_SORT_ASCENDING,
+    val loggingEnabled: Boolean = DEFAULT_LOGGING_ENABLED,
 ) {
     companion object {
         const val DEFAULT_COIL_CACHE_SIZE_MB = 500
@@ -41,5 +42,8 @@ data class AppSettings(
 
         val DEFAULT_SEARCH_SORT = MessageSort.DATE
         const val DEFAULT_SEARCH_SORT_ASCENDING = false
+
+        /** Off by default: the log is a diagnostic the user opts into to report a problem. */
+        const val DEFAULT_LOGGING_ENABLED = false
     }
 }

@@ -9,6 +9,7 @@ import com.etozhesandy.redpanda.core.settings.AppSettings
 import com.etozhesandy.redpanda.core.common.mvi.UiEffect
 import com.etozhesandy.redpanda.core.common.mvi.UiEvent
 import com.etozhesandy.redpanda.core.common.mvi.UiState
+import java.io.File
 
 /** MVI-контракт экрана: состояние, события и одноразовые эффекты. */
 object SettingsState {
@@ -23,6 +24,7 @@ object SettingsState {
         val defaultMediaSortAscending: Boolean = AppSettings.DEFAULT_MEDIA_SORT_ASCENDING,
         val defaultSearchSort: MessageSort = AppSettings.DEFAULT_SEARCH_SORT,
         val defaultSearchSortAscending: Boolean = AppSettings.DEFAULT_SEARCH_SORT_ASCENDING,
+        val loggingEnabled: Boolean = AppSettings.DEFAULT_LOGGING_ENABLED,
         val profilesCacheBytes: Long? = null,
         val isCacheSizeLoading: Boolean = true,
         val appLockEnabled: Boolean = false,
@@ -42,10 +44,15 @@ object SettingsState {
         data object ChangePinClicked : Event
         data class BiometricToggled(val value: Boolean) : Event
         data class LockTimeoutChanged(val seconds: Int) : Event
+        data class LoggingToggled(val value: Boolean) : Event
+        data object ShareLogClicked : Event
+        data object ClearLogClicked : Event
         data object BackClicked : Event
     }
 
-    /** No one-off effects: this screen's only outward action is navigation, which goes through
-     * INavigationManager. */
-    sealed interface Effect : UiEffect
+    sealed interface Effect : UiEffect {
+        data class ShareLog(val files: List<File>) : Effect
+        data object LogEmpty : Effect
+        data object LogCleared : Effect
+    }
 }

@@ -40,6 +40,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 defaultSearchSort = preferences[SEARCH_SORT_KEY].toEnum(AppSettings.DEFAULT_SEARCH_SORT),
                 defaultSearchSortAscending = preferences[SEARCH_SORT_ASCENDING_KEY]
                     ?: AppSettings.DEFAULT_SEARCH_SORT_ASCENDING,
+                loggingEnabled = preferences[LOGGING_ENABLED_KEY] ?: AppSettings.DEFAULT_LOGGING_ENABLED,
             )
         }
 
@@ -76,6 +77,10 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setLoggingEnabled(value: Boolean) {
+        dataStore.edit { preferences -> preferences[LOGGING_ENABLED_KEY] = value }
+    }
+
     /** Falls back to [default] for a name no longer in the enum (an option renamed between builds). */
     private inline fun <reified T : Enum<T>> String?.toEnum(default: T): T =
         this?.let { name -> enumValues<T>().firstOrNull { it.name == name } } ?: default
@@ -90,5 +95,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val MEDIA_SORT_ASCENDING_KEY = booleanPreferencesKey("default_media_sort_ascending")
         val SEARCH_SORT_KEY = stringPreferencesKey("default_search_sort")
         val SEARCH_SORT_ASCENDING_KEY = booleanPreferencesKey("default_search_sort_ascending")
+        val LOGGING_ENABLED_KEY = booleanPreferencesKey("logging_enabled")
     }
 }

@@ -2,6 +2,7 @@ package com.etozhesandy.redpanda.core.archive.parse.vk
 
 import com.etozhesandy.redpanda.core.archive.parse.ChatArchiveParser
 import com.etozhesandy.redpanda.core.archive.parse.ParseSink
+import com.etozhesandy.redpanda.core.archive.parse.importParallelism
 import com.etozhesandy.redpanda.core.common.dispatcher.DefaultDispatcher
 import com.etozhesandy.redpanda.core.common.dispatcher.IoDispatcher
 import com.etozhesandy.redpanda.core.model.Attachment
@@ -76,7 +77,7 @@ class VkJsonDumpArchiveParser @Inject constructor(
             val dialogFiles = VkJsonDumpPaths.dialogFiles(dialogsDir)
             sink.onDialogsDiscovered(dialogFiles.size)
 
-            val semaphore = Semaphore(PARALLELISM)
+            val semaphore = Semaphore(importParallelism())
             coroutineScope {
                 dialogFiles.map { dialogFile ->
                     async(ioDispatcher) {
@@ -514,8 +515,7 @@ class VkJsonDumpArchiveParser @Inject constructor(
      */
     private suspend fun <T> readJsonFile(file: File, cast: (JsonElement) -> T?): T? =
         withContext(ioDispatcher) {
-            val raw = runCatching { file.readText() }.getOrNull() ?: return@withContext null
-            runCatching { cast(json.parseToJsonElement(stripJsAssignment(raw))) }.getOrNull()
+            runCatching { cast(json.readJsonElement(file)) }.getOrNull()
         }
 
     /** A place this export writes as `{"id":1,"title":"Россия"}`, and older ones as a plain string. */
@@ -523,7 +523,6 @@ class VkJsonDumpArchiveParser @Inject constructor(
 
     private companion object {
         const val BATCH_SIZE = 2000
-        const val PARALLELISM = 4
         const val GROUP_PEER_ID_THRESHOLD = 2_000_000_000L
         const val CAPTION_LIMIT = 200
         const val MAX_ATTACHMENTS_PER_MESSAGE = 64

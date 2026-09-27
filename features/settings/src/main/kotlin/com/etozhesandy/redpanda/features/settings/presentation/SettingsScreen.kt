@@ -12,7 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -29,17 +31,34 @@ import com.etozhesandy.redpanda.core.settings.AppSettings
 import com.etozhesandy.redpanda.features.settings.R
 import com.etozhesandy.redpanda.features.settings.presentation.SettingsState
 import com.etozhesandy.redpanda.features.settings.presentation.utils.formatBytes
+import com.etozhesandy.redpanda.features.settings.presentation.utils.shareLogFiles
 import com.etozhesandy.redpanda.features.settings.presentation.view.AboutSection
+import com.etozhesandy.redpanda.features.settings.presentation.view.DiagnosticsSection
 import com.etozhesandy.redpanda.features.settings.presentation.view.SecuritySection
 import com.etozhesandy.redpanda.features.settings.presentation.view.SortDefaultItem
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SettingsScreen(
     state: SettingsState.State,
+    effect: Flow<SettingsState.Effect>,
     onEvent: (SettingsState.Event) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        effect.collectLatest { current ->
+            when (current) {
+                is SettingsState.Effect.ShareLog ->
+                    context.shareLogFiles(current.files, context.getString(R.string.settings_log_share))
+                SettingsState.Effect.LogEmpty ->
+                    Toast.makeText(context, R.string.settings_log_empty, Toast.LENGTH_SHORT).show()
+                SettingsState.Effect.LogCleared ->
+                    Toast.makeText(context, R.string.settings_log_cleared, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     BaseScreen(
         title = stringResource(R.string.settings_title),
         modifier = modifier,
@@ -157,6 +176,9 @@ fun SettingsScreen(
                 ascending = state.defaultSearchSortAscending,
                 onSelect = { onEvent(SettingsState.Event.DefaultSearchSortSelected(it)) },
             )
+
+            HorizontalDivider()
+            DiagnosticsSection(state = state, onEvent = onEvent)
 
             HorizontalDivider()
             AboutSection()

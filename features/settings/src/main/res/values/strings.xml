@@ -48,4 +48,12 @@
     <string name="settings_app_version">App version</string>
     <string name="settings_feedback">Questions / Ideas / Suggestions</string>
 
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_logging">Record app log</string>
+    <string name="settings_logging_description">The log stays on this device. Turn it on, reproduce the problem, reopen the app and send the log.</string>
+    <string name="settings_log_share">Send log</string>
+    <string name="settings_log_clear">Clear log</string>
+    <string name="settings_log_empty">The log is empty</string>
+    <string name="settings_log_cleared">Log cleared</string>
+
 </resources>

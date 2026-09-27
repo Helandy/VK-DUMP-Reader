@@ -1,5 +1,8 @@
 package com.etozhesandy.redpanda.core.archive.parse.vk
 
+import java.io.File
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -7,6 +10,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -87,17 +91,13 @@ internal fun formatDuration(seconds: Long): String {
 }
 
 /**
- * These exports save each JSON payload as a JS assignment — `messages=[...]` in the API-dump
- * layout, `let dialogjson = {...}` in the JSON-dump one — so the leading binding is peeled off
- * before the rest is parsed. The 40-character bound keeps a `=` inside actual JSON content from
- * being mistaken for one: no real binding is longer, and the first `=` of a bare payload is far
- * deeper in.
+ * Parses a payload file straight from disk. These exports save each JSON payload as a JS
+ * assignment — `messages=[...]` in the API-dump layout, `let dialogjson = {...}` in the JSON-dump
+ * one — which [JsAssignmentStream] peels off on the fly, so the file is never read into a string.
  */
-internal fun stripJsAssignment(raw: String): String {
-    val trimmed = raw.trim()
-    val eq = trimmed.indexOf('=')
-    return if (eq in 1..40) trimmed.substring(eq + 1).trim().removeSuffix(";") else trimmed
-}
+@OptIn(ExperimentalSerializationApi::class)
+internal fun Json.readJsonElement(file: File): JsonElement =
+    JsAssignmentStream(file.inputStream()).use { decodeFromStream(JsonElement.serializer(), it) }
 
 /**
  * A person's display name, or a community's. Both key casings occur: the API dump writes

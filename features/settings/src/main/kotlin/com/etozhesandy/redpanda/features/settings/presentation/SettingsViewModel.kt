@@ -7,7 +7,9 @@ import com.etozhesandy.redpanda.core.navigation.Routes
 import com.etozhesandy.redpanda.core.navigation.manager.INavigationManager
 import com.etozhesandy.redpanda.core.model.naturalAscending
 import com.etozhesandy.redpanda.core.model.nextAscending
+import com.etozhesandy.redpanda.features.settings.domain.usecase.ClearLogsUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.GetBiometricAvailabilityUseCase
+import com.etozhesandy.redpanda.features.settings.domain.usecase.GetLogFilesUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.GetProfilesCacheSizeUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.ObserveAppLockConfigUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.ObserveSettingsUseCase
@@ -18,6 +20,7 @@ import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultDi
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultMediaSortUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateDefaultSearchSortUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateLockTimeoutUseCase
+import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateLoggingEnabledUseCase
 import com.etozhesandy.redpanda.features.settings.domain.usecase.UpdateMediaImageWidthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -39,6 +42,9 @@ class SettingsViewModel @Inject constructor(
     private val getBiometricAvailability: GetBiometricAvailabilityUseCase,
     private val updateBiometricEnabled: UpdateBiometricEnabledUseCase,
     private val updateLockTimeout: UpdateLockTimeoutUseCase,
+    private val updateLoggingEnabled: UpdateLoggingEnabledUseCase,
+    private val getLogFiles: GetLogFilesUseCase,
+    private val clearLogs: ClearLogsUseCase,
 ) : BaseViewModel<SettingsState.State, SettingsState.Event, SettingsState.Effect>() {
 
     override fun createInitialState() = SettingsState.State()
@@ -57,6 +63,7 @@ class SettingsViewModel @Inject constructor(
                         defaultMediaSortAscending = settings.defaultMediaSortAscending,
                         defaultSearchSort = settings.defaultSearchSort,
                         defaultSearchSortAscending = settings.defaultSearchSortAscending,
+                        loggingEnabled = settings.loggingEnabled,
                     )
                 }
             }
@@ -128,6 +135,17 @@ class SettingsViewModel @Inject constructor(
             SettingsState.Event.ChangePinClicked -> nav.navigate(Routes.PinSetup(PinSetupMode.CHANGE))
             is SettingsState.Event.BiometricToggled -> launchSafe { updateBiometricEnabled(event.value) }
             is SettingsState.Event.LockTimeoutChanged -> launchSafe { updateLockTimeout(event.seconds) }
+            is SettingsState.Event.LoggingToggled -> launchSafe { updateLoggingEnabled(event.value) }
+            SettingsState.Event.ShareLogClicked -> launchSafe {
+                val files = getLogFiles()
+                setEffect {
+                    if (files.isEmpty()) SettingsState.Effect.LogEmpty else SettingsState.Effect.ShareLog(files)
+                }
+            }
+            SettingsState.Event.ClearLogClicked -> launchSafe {
+                clearLogs()
+                setEffect { SettingsState.Effect.LogCleared }
+            }
             SettingsState.Event.BackClicked -> nav.back()
         }
     }

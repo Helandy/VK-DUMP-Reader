@@ -9,7 +9,7 @@ import java.io.File
  *
  * Both write the same schema — abbreviated camelCase fields, one file per dialog, a `profiles`
  * array beside the messages — and differ only in what the files are *called* and whether the JSON
- * is wrapped in a `let dialogjson = …` assignment, which [VkJsonUtils.stripJsAssignment] already
+ * is wrapped in a `let dialogjson = …` assignment, which [JsAssignmentStream] already
  * peels. Detection and parsing therefore share this one table instead of the parser hardcoding the
  * English names, which is why the Russian build imported as a media-only profile for so long.
  *
